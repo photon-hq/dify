@@ -109,7 +109,7 @@ The space decides the channel. `sender_id` falls back to the provider's default;
 
 An omitted or empty `idempotency_key` generates a UUID. Supplied keys must contain 1-255 visible ASCII characters without spaces. Each image is uploaded with an idempotency key derived from the send key and the image's position, so a retry with the same key and the same images repeats identical uploads, which Photon answers with the attachments it already committed. The result has the message fields above plus `idempotency_key`.
 
-**HTTP 202 means submission succeeded; it does not confirm delivery.** `dispatched` and `accepted` are not delivery confirmation. Only a canonical `delivered` status sets `delivery_confirmed` to `true`. Use `get_message` after sending. The plugin never retries automatically or polls in the background. For workflows that may retry, supply a stable key in advance and reuse it only with the identical send body; Photon rejects a reused key with a different body (`IDEMPOTENCY_KEY_REUSED`). After a timeout or connection failure, the submission may already have happened: check history or status before retrying explicitly. A generated key cannot be recovered from a failed invocation.
+**HTTP 202 means submission succeeded; it does not confirm delivery.** `dispatched` and `accepted` are not delivery confirmation. Only a canonical `delivered` status sets `delivery_confirmed` to `true`. Use `get_message` after sending. The plugin never retries automatically or polls in the background. For workflows that may retry, supply a stable key in advance and reuse it only with the identical send body; Photon rejects a reused key with a different body (`IDEMPOTENCY_KEY_REUSED`). After a timeout or connection failure, the submission may already have happened: check history or status before retrying explicitly. If the plugin generated the key, a failed send's error includes it, so an explicit retry can reuse it.
 
 Send failures name Photon's error code with a short hint, for example `SMS_CAMPAIGN_NOT_ELIGIBLE`, `SHARED_LINE_INBOUND_REQUIRED`, `SPACE_NOT_SENDABLE`, `UNSUPPORTED_CONTENT`, `PAYLOAD_TOO_LARGE`, or `MESSAGE_TOO_LONG`.
 
@@ -166,7 +166,7 @@ Photon's API requires a resource or user perspective to filter by `spaceId` on t
 }
 ```
 
-`attachment_id` is required and comes from a message's `attachment_ids`. The output has `id`, `filename`, `content_type`, `size_bytes`, and `created_at`, and the file itself is returned to Dify as a file output, for example to pass an image to a vision model. If Photon is still processing the file, the tool reports `ATTACHMENT_NOT_READY`; retry shortly.
+`attachment_id` is required and comes from a message's `attachment_ids`. The output has `id`, `filename`, `content_type`, `size_bytes`, and `created_at`, and the file itself is returned to Dify as a file output, for example to pass an image to a vision model. Files larger than 50 MB, Dify's default limit for files returned by plugins, are rejected. If Photon is still processing the file, the tool reports `ATTACHMENT_NOT_READY`; retry shortly.
 
 ## Connection requirements
 

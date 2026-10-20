@@ -16,6 +16,7 @@ PLATFORMS = ("imessage", "sms", "whatsapp", "whatsapp_business", "email", "teleg
 SEND_TYPES = ("text", "attachment")
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024
 STATUSES = {"received", "dispatched", "accepted", "delivered", "failed"}
 ID_SUFFIX = r"[0-7][0-9a-hjkmnp-tv-z]{25}"
 ROUTES = (
@@ -230,13 +231,18 @@ class PhotonClient:
                     method,
                     f"{self.origin}/v1/projects/{self.project_id}{path}",
                     headers=headers, params=params, json=body, data=data,
-                    timeout=TIMEOUT, verify=True, allow_redirects=False,
+                    timeout=TIMEOUT, verify=True, allow_redirects=False, stream=binary,
                 ) as response:
                     expected = {("POST", "/messages"): (202,), ("POST", "/attachments"): (200, 201)}.get((method, path), (200,))
                     if response.status_code not in expected:
                         self._raise_api_error(response)
                     if binary:
-                        return response.content
+                        data = bytearray()
+                        for chunk in response.iter_content(65536):
+                            data += chunk
+                            if len(data) > MAX_ATTACHMENT_BYTES:
+                                raise PhotonError("The attachment is larger than 50 MB, Dify's default limit for files returned by plugins.")
+                        return bytes(data)
                     try:
                         result = response.json()
                     except ValueError:

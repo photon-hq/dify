@@ -100,7 +100,11 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
         finally:
             session.close()
             process.terminate()
-            stdout, stderr = process.communicate(timeout=5)
+            try:
+                stdout, stderr = process.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
             self.assertNotIn(KEY, stdout + stderr, "SDK process logs exposed a fixture credential")
             # SDK 0.10.2 logs safe tracebacks for the four deliberate error calls.
             self.assertNotIn("AssertionError", stderr, "Synthetic HTTP contract check failed")

@@ -44,26 +44,32 @@ class SendMessageTool(Tool):
             raise PhotonError("attachments must be JPEG, PNG, GIF, or WebP images; other file types are not supported yet.")
         subject = optional_string(tool_parameters.get("email_subject"), "email_subject", MAX_EMAIL_SUBJECT_LENGTH)
         key = tool_parameters.get("idempotency_key")
-        if key is None or key == "":
+        generated = key is None or key == ""
+        if generated:
             key = str(uuid4())
         if not isinstance(key, str) or not re.fullmatch(r"[\x21-\x7e]{1,255}", key):
             raise PhotonError("idempotency_key must be 1-255 visible ASCII characters without spaces; use a UUID or stable operation ID.")
         images = [(file, file.blob) for file in files]
         if any(len(data) > MAX_IMAGE_BYTES for _, data in images):
             raise PhotonError("Each image in attachments must be at most 10 MB.")
-        parts = []
-        for index, (file, data) in enumerate(images):
-            upload_key = f"{hashlib.sha256(key.encode()).hexdigest()}.attachment.{index}"
-            attachment = client.upload_attachment(data, file.mime_type, file.filename, upload_key)
-            parts.append({"type": "attachment", "attachmentId": attachment["id"]})
-        if text is not None:
-            parts.append({"type": "text", "format": "plain", "text": text})
-        body = {"spaceId": space, "senderId": sender, "content": parts[0] if len(parts) == 1 else {"type": "group", "parts": parts}}
-        if parent is not None:
-            body["parentMessageId"] = parent
-        if subject is not None:
-            body["email"] = {"subject": subject}
-        result = normalize_message(client.request("POST", "/messages", body=body, idempotency=key))
+        try:
+            parts = []
+            for index, (file, data) in enumerate(images):
+                upload_key = f"{hashlib.sha256(key.encode()).hexdigest()}.attachment.{index}"
+                attachment = client.upload_attachment(data, file.mime_type, file.filename, upload_key)
+                parts.append({"type": "attachment", "attachmentId": attachment["id"]})
+            if text is not None:
+                parts.append({"type": "text", "format": "plain", "text": text})
+            body = {"spaceId": space, "senderId": sender, "content": parts[0] if len(parts) == 1 else {"type": "group", "parts": parts}}
+            if parent is not None:
+                body["parentMessageId"] = parent
+            if subject is not None:
+                body["email"] = {"subject": subject}
+            result = normalize_message(client.request("POST", "/messages", body=body, idempotency=key))
+        except PhotonError as error:
+            if generated:
+                raise PhotonError(f"{error} Generated idempotency_key: {key}") from None
+            raise
         result["idempotency_key"] = key
         result = client.sanitize(result)
         yield self.create_json_message(result)

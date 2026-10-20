@@ -15,7 +15,7 @@ import requests
 import yaml
 
 from fixtures import ATTACHMENT, CREDENTIALS, CURSOR, FAILED_MESSAGE, KEY, MESSAGE, NOW, OTHER_ATTACHMENT, OTHER_SENDER, OTHER_SPACE, PNG, PROJECT, SENDER, SPACE, attachment, chat, image, message
-from provider.client import IMAGE_TYPES, MAX_EMAIL_SUBJECT_LENGTH, MAX_IMAGE_BYTES, MAX_TEXT_LENGTH, PLATFORMS, PhotonClient, PhotonError
+from provider.client import IMAGE_TYPES, MAX_ATTACHMENT_BYTES, MAX_EMAIL_SUBJECT_LENGTH, MAX_IMAGE_BYTES, MAX_TEXT_LENGTH, PLATFORMS, PhotonClient, PhotonError
 from provider.photon import PhotonProvider
 
 
@@ -68,6 +68,7 @@ class ToolAcceptanceTests(unittest.TestCase):
         response.status_code = status
         response.headers = {"Content-Type": content_type, **headers}
         response._content = json.dumps(data).encode() if not isinstance(data, bytes) else data
+        response._content_consumed = True
         response.request = request
         response.url = request.url
         return response
@@ -634,6 +635,27 @@ class ToolAcceptanceTests(unittest.TestCase):
         self.assertEqual(len(self.blobs), 1)
         self.assertEqual(self.blobs[0].message.blob, PNG)
         self.assertEqual(self.blobs[0].meta, {"mime_type": "image/png", "filename": "photo.png"})
+
+    def test_get_attachment_stops_reading_past_dify_file_limit(self):
+        self.queue(attachment(size=MAX_ATTACHMENT_BYTES + 1))
+        self.queue(bytes(MAX_ATTACHMENT_BYTES + 1), content_type="image/png")
+        with self.assertRaisesRegex(PhotonError, "larger than 50 MB"):
+            self.invoke("get_attachment", {"attachment_id": ATTACHMENT})
+
+    def test_failed_send_reports_only_a_generated_idempotency_key(self):
+        self.responses.append(requests.Timeout())
+        with self.assertRaises(PhotonError) as caught:
+            self.invoke("send_message", {"space_id": SPACE, "text": "valid"})
+        generated = self.calls[-1].headers["Idempotency-Key"]
+        self.assertIn(f"Generated idempotency_key: {generated}", str(caught.exception))
+        self.assertEqual(UUID(generated).version, 4)
+        self.responses.append(requests.Timeout())
+        with self.assertRaises(PhotonError) as caught:
+            self.invoke("send_message", {"space_id": SPACE, "text": "valid", "idempotency_key": "stable-key"})
+        self.assertNotIn("Generated idempotency_key", str(caught.exception))
+        with self.assertRaises(PhotonError) as caught:
+            self.invoke("send_message", {"space_id": SPACE, "text": ""})
+        self.assertNotIn("Generated idempotency_key", str(caught.exception))
 
     def test_get_attachment_rejects_bad_ids_and_explains_not_ready(self):
         with self.assertRaisesRegex(PhotonError, "attachment_id must be a Photon ID"):

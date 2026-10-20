@@ -109,7 +109,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，向会话�
 
 省略或留空 `idempotency_key` 时会生成 UUID。自行提供的键必须是 1 至 255 个不含空格的可见 ASCII 字符。每张图片上传时使用由发送幂等键和图片位置派生的幂等键，因此用相同的键和相同的图片重试时，会重复完全相同的上传请求，Photon 会返回已经提交过的附件。结果包含上述消息字段以及 `idempotency_key`。
 
-**HTTP 202 只表示已成功提交，不代表已投递。** `dispatched` 和 `accepted` 都不是投递确认，只有 Photon 返回 `delivered` 时 `delivery_confirmed` 才为 `true`。发送后请用 `get_message` 查询。插件不会自动重试，也不会在后台轮询。可能重试的工作流应事先提供稳定的键，并且只在请求正文完全相同时复用；用同一个键发送不同正文会被 Photon 拒绝（`IDEMPOTENCY_KEY_REUSED`）。超时或连接失败后，消息可能已经提交，请先查看历史或状态再决定是否手动重试。调用失败时，自动生成的键无法找回。
+**HTTP 202 只表示已成功提交，不代表已投递。** `dispatched` 和 `accepted` 都不是投递确认，只有 Photon 返回 `delivered` 时 `delivery_confirmed` 才为 `true`。发送后请用 `get_message` 查询。插件不会自动重试，也不会在后台轮询。可能重试的工作流应事先提供稳定的键，并且只在请求正文完全相同时复用；用同一个键发送不同正文会被 Photon 拒绝（`IDEMPOTENCY_KEY_REUSED`）。超时或连接失败后，消息可能已经提交，请先查看历史或状态再决定是否手动重试。如果键是插件自动生成的，发送失败时的错误信息会带上它，手动重试时可以复用。
 
 发送失败时会给出 Photon 的错误码和简短提示，例如 `SMS_CAMPAIGN_NOT_ELIGIBLE`、`SHARED_LINE_INBOUND_REQUIRED`、`SPACE_NOT_SENDABLE`、`UNSUPPORTED_CONTENT`、`PAYLOAD_TOO_LARGE` 或 `MESSAGE_TOO_LONG`。
 
@@ -166,7 +166,7 @@ Photon API 在服务端按 `spaceId` 筛选时要求提供资源或用户视角�
 }
 ```
 
-`attachment_id` 必填，来自消息的 `attachment_ids`。输出包含 `id`、`filename`、`content_type`、`size_bytes` 和 `created_at`，文件本身作为 Dify 文件输出返回，例如可以把图片传给视觉模型。如果 Photon 仍在处理该文件，工具会给出 `ATTACHMENT_NOT_READY`，请稍后重试。
+`attachment_id` 必填，来自消息的 `attachment_ids`。输出包含 `id`、`filename`、`content_type`、`size_bytes` 和 `created_at`，文件本身作为 Dify 文件输出返回，例如可以把图片传给视觉模型。超过 50 MB（Dify 对插件返回文件的默认上限）的文件会被拒绝。如果 Photon 仍在处理该文件，工具会给出 `ATTACHMENT_NOT_READY`，请稍后重试。
 
 ## 网络连接要求
 
