@@ -1,0 +1,143 @@
+identity:
+  name: get_message
+  author: photon-hq
+  label:
+    en_US: Get message
+    zh_Hans: 获取消息
+description:
+  human:
+    en_US: Fetch one message with its content, canonical delivery status, timestamps and failure details. Only delivered confirms delivery; dispatched and accepted do not. This tool never polls or resends.
+    zh_Hans: 获取一条消息，包括内容、权威投递状态、时间戳和失败详情。只有 delivered 表示已确认投递，dispatched 和 accepted 均不代表已投递。此工具不会轮询或重新发送。
+  llm: Fetch one message with its content, canonical delivery status, timestamps and failure details. Only delivered confirms delivery; dispatched and accepted do not. This tool never polls or resends.
+parameters:
+- name: message_id
+  type: string
+  required: true
+  label:
+    en_US: Message ID
+    zh_Hans: 消息 ID
+  human_description:
+    en_US: Photon message ID (pho_msg_ plus the full 26-character ID) returned by send_message or list_messages.
+    zh_Hans: send_message 或 list_messages 返回的 Photon 消息 ID，由 pho_msg_ 前缀及完整的 26 位标识组成。
+  llm_description: Photon message ID (pho_msg_ plus the full 26-character ID) returned by send_message or list_messages.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    platform:
+      type: string
+    space_id:
+      type: string
+    direction:
+      type: string
+      enum:
+      - received
+      - sent
+    type:
+      type: string
+    text:
+      type:
+      - string
+      - 'null'
+    attachment_ids:
+      type: array
+      items:
+        type: string
+    content:
+      type: object
+    parent_message_id:
+      type:
+      - string
+      - 'null'
+    status:
+      type: string
+      enum:
+      - received
+      - dispatched
+      - accepted
+      - delivered
+      - failed
+    delivery_confirmed:
+      type: boolean
+    timestamps:
+      type: object
+      properties:
+        created_at:
+          type:
+          - string
+          - 'null'
+        updated_at:
+          type:
+          - string
+          - 'null'
+        received_at:
+          type:
+          - string
+          - 'null'
+        dispatched_at:
+          type:
+          - string
+          - 'null'
+        accepted_at:
+          type:
+          - string
+          - 'null'
+        delivered_at:
+          type:
+          - string
+          - 'null'
+        failed_at:
+          type:
+          - string
+          - 'null'
+      required:
+      - created_at
+      - updated_at
+      - received_at
+      - dispatched_at
+      - accepted_at
+      - delivered_at
+      - failed_at
+      additionalProperties: false
+    failure:
+      type:
+      - object
+      - 'null'
+      properties:
+        code:
+          type:
+          - string
+          - 'null'
+        message:
+          type:
+          - string
+          - 'null'
+        confirmed_recipient_count:
+          type:
+          - integer
+          - 'null'
+      required:
+      - code
+      - message
+      - confirmed_recipient_count
+      additionalProperties: false
+  required:
+  - id
+  - platform
+  - space_id
+  - direction
+  - type
+  - text
+  - attachment_ids
+  - content
+  - parent_message_id
+  - status
+  - delivery_confirmed
+  - timestamps
+  - failure
+  additionalProperties: false
+extra:
+  python:
+    source: tools/get_message.py

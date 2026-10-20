@@ -1,0 +1,233 @@
+identity:
+  name: send_message
+  author: photon-hq
+  label:
+    en_US: Send message
+    zh_Hans: 发送消息
+description:
+  human:
+    en_US: Send one message into an existing space on iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram; the space decides the channel. type text sends text; type attachment sends images, with optional text in the same message where the channel allows it. HTTP 202 is asynchronous submission, not delivery. Use get_message to confirm delivered; no automatic retries.
+    zh_Hans: 向 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件或 Telegram 上的现有会话发送一条消息，渠道由会话决定。type 为 text 时发送文字；为 attachment 时发送图片，渠道允许时可在同一条消息里附带文字。HTTP 202 仅表示已异步提交，不代表已投递。请使用 get_message 确认 delivered 状态；工具不会自动重试。
+  llm: Send one message into an existing space on iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram; the space decides the channel. type text sends text; type attachment sends images, with optional text in the same message where the channel allows it. HTTP 202 is asynchronous submission, not delivery. Use get_message to confirm delivered; no automatic retries.
+parameters:
+- name: space_id
+  type: string
+  required: true
+  label:
+    en_US: Space ID
+    zh_Hans: 会话 ID
+  human_description:
+    en_US: Existing space ID (pho_spc_ plus the full 26-character ID), obtained from list_spaces. Its platform decides the channel.
+    zh_Hans: 从 list_spaces 获取的现有会话 ID，由 pho_spc_ 前缀及完整的 26 位标识组成。会话所属平台决定发送渠道。
+  llm_description: Existing space ID (pho_spc_ plus the full 26-character ID), obtained from list_spaces. Its platform decides the channel.
+  form: llm
+- name: type
+  type: select
+  required: true
+  label:
+    en_US: Type
+    zh_Hans: 内容类型
+  human_description:
+    en_US: 'Photon content type: text sends text; attachment sends the images in attachments. Defaults to text.'
+    zh_Hans: Photon 的内容类型：text 发送文字；attachment 发送 attachments 中的图片。默认 text。
+  llm_description: 'Photon content type: text sends text; attachment sends the images in attachments. Defaults to text.'
+  form: llm
+  default: text
+  options:
+  - value: text
+    label:
+      en_US: text
+      zh_Hans: 文字（text）
+  - value: attachment
+    label:
+      en_US: attachment
+      zh_Hans: 附件（attachment）
+- name: text
+  type: string
+  required: false
+  label:
+    en_US: Text
+    zh_Hans: 消息文本
+  human_description:
+    en_US: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message as the images; iMessage does not accept text and attachments in one message.
+    zh_Hans: 纯文本，长度为 1 至 10000 个字符。type 为 text 时必填；type 为 attachment 时可选，会与图片在同一条消息中发送，但 iMessage 不接受在一条消息中同时包含文字和附件。
+  llm_description: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message as the images; iMessage does not accept text and attachments in one message.
+  form: llm
+- name: attachments
+  type: files
+  required: false
+  label:
+    en_US: Attachments
+    zh_Hans: 附件
+  human_description:
+    en_US: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram and decides which images each channel accepts.
+    zh_Hans: type 为 attachment 时要发送的图片，支持 JPEG、PNG、GIF、WebP，每张不超过 10 MB。Photon 目前在 iMessage、短信和 Telegram 上发送图片，各渠道接受哪些图片由 Photon 决定。
+  llm_description: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram and decides which images each channel accepts.
+  form: llm
+- name: sender_id
+  type: string
+  required: false
+  label:
+    en_US: Sender ID
+    zh_Hans: 发送者 ID
+  human_description:
+    en_US: Project-owned agent user ID (pho_usr_) on the same channel as the space. Defaults to the provider default_sender_id; one must be set.
+    zh_Hans: 与会话同一渠道的项目所属代理用户 ID（pho_usr_）。默认使用提供方凭据中的 default_sender_id；两者至少需要配置一项。
+  llm_description: Project-owned agent user ID (pho_usr_) on the same channel as the space. Defaults to the provider default_sender_id; one must be set.
+  form: llm
+- name: parent_message_id
+  type: string
+  required: false
+  label:
+    en_US: Parent message ID
+    zh_Hans: 被回复消息 ID
+  human_description:
+    en_US: Optional message ID (pho_msg_) to reply to. Photon currently accepts replies only on email and Telegram.
+    zh_Hans: 可选，指定要回复的消息 ID（pho_msg_）。Photon 目前只在电子邮件和 Telegram 上支持回复。
+  llm_description: Optional message ID (pho_msg_) to reply to. Photon currently accepts replies only on email and Telegram.
+  form: llm
+- name: email_subject
+  type: string
+  required: false
+  label:
+    en_US: Email subject
+    zh_Hans: 邮件主题
+  human_description:
+    en_US: Optional subject for email spaces, at most 4096 characters. Leave empty on other channels.
+    zh_Hans: 可选，仅用于电子邮件会话的主题，最多 4096 个字符。其他渠道请留空。
+  llm_description: Optional subject for email spaces, at most 4096 characters. Leave empty on other channels.
+  form: llm
+- name: idempotency_key
+  type: string
+  required: false
+  label:
+    en_US: Idempotency key
+    zh_Hans: 幂等键
+  human_description:
+    en_US: 1-255 visible ASCII characters without spaces. Supply a stable key for safe manual retries with the identical body; attachment uploads use keys derived from it. Omitted keys generate a UUID, returned on success.
+    zh_Hans: 1 至 255 个不含空格的可见 ASCII 字符。手动重试相同请求正文时请使用同一键值；附件上传使用由它派生的键。省略时生成 UUID，并在成功结果中返回。
+  llm_description: 1-255 visible ASCII characters without spaces. Supply a stable key for safe manual retries with the identical body; attachment uploads use keys derived from it. Omitted keys generate a UUID, returned on success.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    platform:
+      type: string
+    space_id:
+      type: string
+    direction:
+      type: string
+      enum:
+      - received
+      - sent
+    type:
+      type: string
+    text:
+      type:
+      - string
+      - 'null'
+    attachment_ids:
+      type: array
+      items:
+        type: string
+    content:
+      type: object
+    parent_message_id:
+      type:
+      - string
+      - 'null'
+    status:
+      type: string
+      enum:
+      - received
+      - dispatched
+      - accepted
+      - delivered
+      - failed
+    delivery_confirmed:
+      type: boolean
+    timestamps:
+      type: object
+      properties:
+        created_at:
+          type:
+          - string
+          - 'null'
+        updated_at:
+          type:
+          - string
+          - 'null'
+        received_at:
+          type:
+          - string
+          - 'null'
+        dispatched_at:
+          type:
+          - string
+          - 'null'
+        accepted_at:
+          type:
+          - string
+          - 'null'
+        delivered_at:
+          type:
+          - string
+          - 'null'
+        failed_at:
+          type:
+          - string
+          - 'null'
+      required:
+      - created_at
+      - updated_at
+      - received_at
+      - dispatched_at
+      - accepted_at
+      - delivered_at
+      - failed_at
+      additionalProperties: false
+    failure:
+      type:
+      - object
+      - 'null'
+      properties:
+        code:
+          type:
+          - string
+          - 'null'
+        message:
+          type:
+          - string
+          - 'null'
+        confirmed_recipient_count:
+          type:
+          - integer
+          - 'null'
+      required:
+      - code
+      - message
+      - confirmed_recipient_count
+      additionalProperties: false
+    idempotency_key:
+      type: string
+  required:
+  - id
+  - platform
+  - space_id
+  - direction
+  - type
+  - text
+  - attachment_ids
+  - content
+  - parent_message_id
+  - status
+  - delivery_confirmed
+  - timestamps
+  - failure
+  - idempotency_key
+  additionalProperties: false
+extra:
+  python:
+    source: tools/send_message.py

@@ -1,0 +1,81 @@
+identity:
+  author: photon-hq
+  name: photon
+  label:
+    en_US: Photon
+    zh_Hans: Photon
+  description:
+    en_US: Send text and images, list spaces and messages, read attachments, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
+    zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发送文字和图片、查看会话与消息、读取附件，并查询异步投递状态。
+  icon: icon.svg
+  tags:
+  - social
+  - productivity
+credentials_for_provider:
+  api_origin:
+    type: select
+    required: true
+    default: https://api.photon.codes
+    label:
+      en_US: Photon environment
+      zh_Hans: Photon 环境
+    help:
+      en_US: Select Production or Staging to match your API key and project. Only these exact HTTPS origins are allowed; arbitrary URLs and trailing paths are rejected. Production is the default.
+      zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。仅允许这两个指定的 HTTPS 源地址，不接受任意网址或附加路径。默认使用生产环境。
+    options:
+    - value: https://api.photon.codes
+      label:
+        en_US: Production (https://api.photon.codes)
+        zh_Hans: 生产环境（https://api.photon.codes）
+    - value: https://api.staging.photon.codes
+      label:
+        en_US: Staging (https://api.staging.photon.codes)
+        zh_Hans: 预发布环境（https://api.staging.photon.codes）
+  api_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: Photon API key
+      zh_Hans: Photon API 密钥
+    help:
+      en_US: Account Service Key (pho_ask_) or Project API key (pho_sk_) from the selected Photon environment. Enter the raw key without Bearer. Project keys must belong to project_id.
+      zh_Hans: 所选 Photon 环境的账号服务密钥（pho_ask_）或项目 API 密钥（pho_sk_）。直接填写原始密钥，无需添加 Bearer。项目密钥必须属于 project_id 指定的项目。
+    placeholder:
+      en_US: Photon API key
+      zh_Hans: Photon API 密钥
+    url: https://photon.codes
+  project_id:
+    type: text-input
+    required: true
+    label:
+      en_US: Photon project ID
+      zh_Hans: Photon 项目 ID
+    help:
+      en_US: Full project ID starting with pho_prj_, copied from your project settings in the selected Photon environment.
+      zh_Hans: 从所选 Photon 环境的项目设置中复制完整的项目 ID，须以 pho_prj_ 开头。
+    placeholder:
+      en_US: Photon project ID
+      zh_Hans: Photon 项目 ID
+    url: https://photon.codes
+  default_sender_id:
+    type: text-input
+    required: false
+    label:
+      en_US: Default sender ID
+      zh_Hans: 默认发送者 ID
+    help:
+      en_US: Optional project-owned agent user ID starting with pho_usr_. Used when send_message omits sender_id. Photon users belong to one channel, so pass sender_id when sending on another channel.
+      zh_Hans: 可选的项目所属代理用户 ID，须以 pho_usr_ 开头。send_message 未指定 sender_id 时使用此值。Photon 的用户只属于一个渠道，在其他渠道发送时请传入 sender_id。
+    placeholder:
+      en_US: Default sender ID
+      zh_Hans: 默认发送者 ID
+    url: https://photon.codes
+tools:
+- tools/send_message.yaml
+- tools/list_spaces.yaml
+- tools/list_messages.yaml
+- tools/get_message.yaml
+- tools/get_attachment.yaml
+extra:
+  python:
+    source: provider/photon.py

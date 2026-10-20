@@ -1,0 +1,11 @@
+[project]
+name = "photon"
+version = "0.2.0"
+description = "Photon messaging tools for Dify"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{name = "Photon", email = "help@photon.codes"}]
+dependencies = [
+    "dify-plugin==0.10.2",
+    "requests==2.33.1",
+]
