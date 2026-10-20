@@ -101,9 +101,15 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，向会话�
 `space_id` 和 `type` 必填，`type` 默认为 `text`，取 Photon 的内容类型 `text` 或 `attachment`：
 
 - `text`：必须提供 `text`，不能带附件。文本原样以 `{ "type": "text", "format": "plain", "text": "..." }` 发送。
-- `attachment`：`attachments` 中至少要有一个文件，每个文件都必须是 JPEG、PNG、GIF 或 WebP 图片，且不超过 10 MB（与 Dify 默认的图片上传上限一致），否则在向 Photon 发送任何内容之前就会被拒绝。每张图片先上传到 Photon，再按附件 ID 引用。只有一张图片且没有文字时，以 `{ "type": "attachment", "attachmentId": "pho_att_..." }` 发送；多张图片，或图片加文字时，以一条 `group` 消息发送，各部分依次是按顺序排列的图片，最后是文字。
+- `attachment`：`attachments` 中至少要有一个文件，每个文件都必须是 JPEG、PNG、GIF 或 WebP 图片，且不超过 10 MB（与 Dify 默认的图片上传上限一致），否则在向 Photon 发送任何内容之前就会被拒绝。每张图片先上传到 Photon，再按附件 ID 引用。只有一张图片且没有文字时，以 `{ "type": "attachment", "attachmentId": "pho_att_..." }` 发送；多张图片，或图片加文字时，以一条 `group` 消息发送：有文字时文字在最前，然后是按顺序排列的图片。
 
-除了这些检查，各渠道接受哪些内容由 Photon 决定，被拒绝时工具会给出 Photon 的错误码。Photon 目前在 iMessage、短信（以 MMS 发送）和 Telegram 上发送图片；WhatsApp、WhatsApp Business 和电子邮件会话只接受文字，在这些渠道发送图片会返回 `UNSUPPORTED_CONTENT`。iMessage 也不接受在一条消息中同时包含文字和附件，需要把图片和文字分成两条消息发送。
+除了这些检查，各渠道接受哪些内容由 Photon 决定，被拒绝时工具会给出 Photon 的错误码；渠道不接受的内容会返回 `UNSUPPORTED_CONTENT`。Photon 目前在三个渠道上发送图片：
+
+- iMessage：一条消息里只能有图片或只能有文字，不能同时包含。
+- 短信：最多 10 张图片、总共不超过 600,000 字节，以一条彩信（MMS）发送，可以附带文字。
+- Telegram：只接受 JPEG 和 PNG，可以发一张图片或最多 10 张组成的相册，总共不超过 10,000,000 字节，同一条消息里不能有文字。
+
+WhatsApp、WhatsApp Business 和电子邮件会话只接受文字。渠道不接受文字和图片同发时，请分成两条消息发送。
 
 渠道由会话决定。`sender_id` 默认使用提供方的 `default_sender_id`，两者必须至少有一个，且必须是与会话同一渠道的代理。文本不能为空白，长度不超过 10,000 个字符；这是插件的安全上限，不是 Photon 的上限，个别渠道可能接受得更少。`parent_message_id` 用于回复一条已有消息。Photon 目前只在电子邮件和 Telegram 上支持回复；iMessage、短信、WhatsApp 和 WhatsApp Business 会话会以 `SPACE_NOT_SENDABLE` 拒绝。`email_subject` 可选，最多 4,096 个字符，只用于电子邮件会话，其他渠道请留空。
 
@@ -190,7 +196,7 @@ Photon API 在服务端按 `spaceId` 筛选时要求提供资源或用户视角�
 
 - 只支持现有会话：不支持新建会话、开通线路、语音通话、入站触发、后台轮询或投递 webhook。
 - 发送只支持文字和不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（Photon 的 `text` 和 `attachment` 内容类型），不发送语音消息、表情回应和其他文件。读取消息时会返回所有内容类型。
-- 各渠道自身的规则仍然适用。共享 iMessage 线路只能在单聊中发给分配之后给该线路发过消息的人；iMessage 不接受在一条消息中同时包含文字和附件；WhatsApp、WhatsApp Business 和电子邮件只接受文字，且只有电子邮件和 Telegram 支持回复；短信需要 campaign 资格，除非所有收件人都在网内；Telegram bot 不能主动与用户发起会话，也不能向自己不在的群组发送，Photon 会把这类发送标记为失败。
+- 各渠道自身的规则仍然适用。共享 iMessage 线路只能在单聊中发给分配之后给该线路发过消息的人；iMessage 和 Telegram 不接受在一条消息中同时包含文字和图片，Telegram 只接受 JPEG 和 PNG 图片，短信每条消息的图片总共不超过 600,000 字节；WhatsApp、WhatsApp Business 和电子邮件只接受文字，且只有电子邮件和 Telegram 支持回复；短信需要 campaign 资格，除非所有收件人都在网内；Telegram bot 不能主动与用户发起会话，也不能向自己不在的群组发送，Photon 会把这类发送标记为失败。
 - 一个默认发送者只对应一个渠道。在其他渠道发送时，如果代理不是 `default_sender_id`，请传入 `sender_id`。
 - Photon 的列表结果是最终一致的。历史为空或延迟出现，不能证明投递失败。
 - 按会话筛选的消息结果是上文所述的项目分页扫描。

@@ -101,9 +101,15 @@ To send as another agent, reply to an existing message, or set an email subject,
 `space_id` and `type` are required; `type` defaults to `text`. It takes Photon's content types `text` and `attachment`:
 
 - `text` requires `text` and takes no attachments. Text is sent unchanged as `{ "type": "text", "format": "plain", "text": "..." }`.
-- `attachment` requires at least one file in `attachments`. Every file must be a JPEG, PNG, GIF, or WebP image of at most 10 MB, matching Dify's default image upload limit; anything else is rejected before anything is sent to Photon. Each image is uploaded to Photon first and then referenced by its attachment ID. One image without text is sent as `{ "type": "attachment", "attachmentId": "pho_att_..." }`. Several images, or images with text, are sent as one `group` message whose parts are the images in order followed by the text.
+- `attachment` requires at least one file in `attachments`. Every file must be a JPEG, PNG, GIF, or WebP image of at most 10 MB, matching Dify's default image upload limit; anything else is rejected before anything is sent to Photon. Each image is uploaded to Photon first and then referenced by its attachment ID. One image without text is sent as `{ "type": "attachment", "attachmentId": "pho_att_..." }`. Several images, or images with text, are sent as one `group` message: the text first, if any, then the images in order.
 
-Beyond these checks, Photon decides which content each channel accepts, and the tool reports Photon's error code when it rejects a send. Photon currently sends images on iMessage, SMS (as MMS), and Telegram. WhatsApp, WhatsApp Business, and email spaces take text only, so images there fail with `UNSUPPORTED_CONTENT`. iMessage does not accept text and attachments in one message either; send the images and the text as two messages there.
+Beyond these checks, Photon decides which content each channel accepts, and the tool reports Photon's error code when it rejects a send. Content a channel does not accept fails with `UNSUPPORTED_CONTENT`. Photon currently sends images on three channels:
+
+- iMessage: images or text in one message, not both.
+- SMS: up to 10 images, at most 600,000 bytes in total, as one MMS, with or without text.
+- Telegram: JPEG and PNG only, one image or an album of up to 10 with at most 10,000,000 bytes in total, and no text in the same message.
+
+WhatsApp, WhatsApp Business, and email spaces take text only. Where a channel does not take text and images together, send them as two messages.
 
 The space decides the channel. `sender_id` falls back to the provider's default; one must be present, and it must be an agent on the same channel as the space. Text must be non-blank and no more than 10,000 characters, a plugin safety cap rather than a Photon maximum; individual channels may accept less. `parent_message_id` replies to an existing message. Photon currently supports replies on email and Telegram; iMessage, SMS, WhatsApp, and WhatsApp Business spaces reject it with `SPACE_NOT_SENDABLE`. `email_subject` is optional, at most 4,096 characters, and meant for email spaces only; leave it empty on other channels.
 
@@ -190,7 +196,7 @@ Sending is an external write action. Treat asynchronous submission and confirmed
 
 - Existing spaces only: no new conversations, line provisioning, voice calls, inbound triggers, background polling, or delivery webhooks.
 - Sending covers text and JPEG, PNG, GIF, or WebP images of up to 10 MB each (Photon's `text` and `attachment` content types). Voice messages, reactions, and other files are not sent. Reading messages returns every content type.
-- Each channel's rules still apply. Shared iMessage lines send only in direct spaces to people who have messaged the line since their assignment. iMessage does not accept text and attachments in one message. WhatsApp, WhatsApp Business, and email take text only, and only email and Telegram accept replies. SMS needs campaign eligibility unless every recipient is in-network. Telegram bots cannot start a conversation with a user or send to a group they are not in; Photon reports such sends as failed.
+- Each channel's rules still apply. Shared iMessage lines send only in direct spaces to people who have messaged the line since their assignment. iMessage and Telegram do not accept text and images in one message, Telegram takes only JPEG and PNG images, and SMS takes at most 600,000 bytes of images per message. WhatsApp, WhatsApp Business, and email take text only, and only email and Telegram accept replies. SMS needs campaign eligibility unless every recipient is in-network. Telegram bots cannot start a conversation with a user or send to a group they are not in; Photon reports such sends as failed.
 - One default sender covers one channel. Pass `sender_id` when sending on a channel whose agent differs from `default_sender_id`.
 - Photon list results are eventually consistent. Empty or delayed history is not proof of failed delivery.
 - Space-filtered message results are paginated project scans as described above.

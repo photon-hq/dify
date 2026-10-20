@@ -49,9 +49,9 @@ parameters:
     en_US: Text
     zh_Hans: 消息文本
   human_description:
-    en_US: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message as the images; iMessage does not accept text and attachments in one message.
-    zh_Hans: 纯文本，长度为 1 至 10000 个字符。type 为 text 时必填；type 为 attachment 时可选，会与图片在同一条消息中发送，但 iMessage 不接受在一条消息中同时包含文字和附件。
-  llm_description: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message as the images; iMessage does not accept text and attachments in one message.
+    en_US: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images; iMessage and Telegram do not accept text and images in one message.
+    zh_Hans: 纯文本，长度为 1 至 10000 个字符。type 为 text 时必填；type 为 attachment 时可选，会放在图片前面、与图片在同一条消息中发送，但 iMessage 和 Telegram 不接受在一条消息中同时包含文字和图片。
+  llm_description: Plain text, 1-10000 characters. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images; iMessage and Telegram do not accept text and images in one message.
   form: llm
 - name: attachments
   type: files
@@ -60,9 +60,9 @@ parameters:
     en_US: Attachments
     zh_Hans: 附件
   human_description:
-    en_US: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram and decides which images each channel accepts.
-    zh_Hans: type 为 attachment 时要发送的图片，支持 JPEG、PNG、GIF、WebP，每张不超过 10 MB。Photon 目前在 iMessage、短信和 Telegram 上发送图片，各渠道接受哪些图片由 Photon 决定。
-  llm_description: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram and decides which images each channel accepts.
+    en_US: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram (JPEG and PNG only) and decides which images each channel accepts.
+    zh_Hans: type 为 attachment 时要发送的图片，支持 JPEG、PNG、GIF、WebP，每张不超过 10 MB。Photon 目前在 iMessage、短信和 Telegram（仅 JPEG 和 PNG）上发送图片，各渠道接受哪些图片由 Photon 决定。
+  llm_description: JPEG, PNG, GIF, or WebP images, at most 10 MB each, to send with type attachment. Photon currently sends images on iMessage, SMS, and Telegram (JPEG and PNG only) and decides which images each channel accepts.
   form: llm
 - name: sender_id
   type: string

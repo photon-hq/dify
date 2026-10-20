@@ -570,7 +570,7 @@ class ToolAcceptanceTests(unittest.TestCase):
     def test_send_images_with_text_become_one_group_message(self):
         self.queue(attachment(), status=201)
         self.queue(attachment(OTHER_ATTACHMENT, filename="second.png"), status=201)
-        group = {"type": "group", "parts": [{"type": "attachment", "attachmentId": ATTACHMENT}, {"type": "attachment", "attachmentId": OTHER_ATTACHMENT}, {"type": "text", "format": "plain", "text": "Two photos"}]}
+        group = {"type": "group", "parts": [{"type": "text", "format": "plain", "text": "Two photos"}, {"type": "attachment", "attachmentId": ATTACHMENT}, {"type": "attachment", "attachmentId": OTHER_ATTACHMENT}]}
         self.queue(message(platform="sms", content=group), status=202)
         result = self.invoke("send_message", {"space_id": SPACE, "type": "attachment", "attachments": [image(), image("second.png")], "text": "Two photos", "idempotency_key": "album-1"})
         self.assertEqual([call.headers["Idempotency-Key"] for call in self.calls[:2]], [hashlib.sha256(b"album-1").hexdigest() + f".attachment.{index}" for index in range(2)])

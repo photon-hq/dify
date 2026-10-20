@@ -53,13 +53,11 @@ class SendMessageTool(Tool):
         if any(len(data) > MAX_IMAGE_BYTES for _, data in images):
             raise PhotonError("Each image in attachments must be at most 10 MB.")
         try:
-            parts = []
+            parts = [] if text is None else [{"type": "text", "format": "plain", "text": text}]
             for index, (file, data) in enumerate(images):
                 upload_key = f"{hashlib.sha256(key.encode()).hexdigest()}.attachment.{index}"
                 attachment = client.upload_attachment(data, file.mime_type, file.filename, upload_key)
                 parts.append({"type": "attachment", "attachmentId": attachment["id"]})
-            if text is not None:
-                parts.append({"type": "text", "format": "plain", "text": text})
             body = {"spaceId": space, "senderId": sender, "content": parts[0] if len(parts) == 1 else {"type": "group", "parts": parts}}
             if parent is not None:
                 body["parentMessageId"] = parent
