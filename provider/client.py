@@ -239,9 +239,9 @@ class PhotonClient:
                     if binary:
                         data = bytearray()
                         for chunk in response.iter_content(65536):
-                            data += chunk
-                            if len(data) > MAX_ATTACHMENT_BYTES:
+                            if len(chunk) > MAX_ATTACHMENT_BYTES - len(data):
                                 raise PhotonError("The attachment is larger than 50 MB, Dify's default limit for files returned by plugins.")
+                            data += chunk
                         return bytes(data)
                     try:
                         result = response.json()
