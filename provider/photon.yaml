@@ -5,8 +5,8 @@ identity:
     en_US: Photon
     zh_Hans: Photon
   description:
-    en_US: Send text and images, list spaces and messages, read attachments and users, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
-    zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发送文字和图片、查看会话与消息、读取附件和用户，并查询异步投递状态。
+    en_US: Start conversations, send text and images, list spaces and messages, read attachments and users, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
+    zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发起会话、发送文字和图片、查看会话与消息、读取附件和用户，并查询异步投递状态。
   icon: icon.svg
   tags:
   - social
@@ -60,9 +60,11 @@ credentials_for_provider:
 tools:
 - tools/send_message.yaml
 - tools/list_spaces.yaml
+- tools/create_or_get_space.yaml
 - tools/list_messages.yaml
 - tools/get_message.yaml
 - tools/get_user.yaml
+- tools/create_or_get_user.yaml
 - tools/get_attachment.yaml
 extra:
   python:

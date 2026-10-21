@@ -10,14 +10,16 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 |---|---|
 | `send_message` | Sends text (`type: text`) or JPEG, PNG, GIF, or WebP images of up to 10 MB each (`type: attachment`) into an existing space. |
 | `list_spaces` | Lists spaces, optionally for one platform or participant. |
+| `create_or_get_space` | Returns the space for the given users on one platform, creating it if needed. |
 | `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. |
 | `get_message` | Returns one message with its sender, content, and delivery status. |
 | `get_user` | Returns one user's handle, and whether it is the project's agent or a person. |
+| `create_or_get_user` | Returns the user for a phone number or email address on one platform, creating it if Photon does not know it yet. |
 | `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. |
 
 ## Setup
 
-1. In your Photon project, connect the channels you will use. The plugin sends into existing spaces; it does not connect channels or create conversations.
+1. In your Photon project, connect the channels you will use. The plugin does not connect channels.
 2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`), and copy the project ID (`pho_prj_`).
 3. Install **Photon** from the Dify Marketplace, then authorize it under **Tools > Photon**:
 
@@ -51,6 +53,16 @@ Send text, or images with optional text:
 - Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later: `delivered` confirms delivery, `accepted` means the channel took the message without confirming delivery (`acceptance.code` says why), and `failed` carries `failure`.
 - Reuse the same `idempotency_key` to retry a send safely. If you omit it, the plugin generates one and returns it in the result, and in the error if the send fails.
 
+To start a conversation with someone new, get their user with `create_or_get_user`, then a space with `create_or_get_space`, and send into that space:
+
+```json
+{"platform": "sms", "handle": "+14155550123"}
+{"platform": "sms", "participant_ids": "pho_usr_<agent>,pho_usr_<person>"}
+```
+
+- `participant_ids` must include one of the project's agents, the one that will send: the `receivedBy.id` of a message received on that line, or the user `create_or_get_user` returns for the line's own number (`kind: agent`). On iMessage, put the agent first.
+- A known handle returns its existing user, and direct spaces and SMS groups with the same participants return the existing space. On email, each new `idempotency_key` starts a new thread.
+
 Lists return Photon's page: `items`, and `nextPageToken` when there are more. To get the next page, pass it as `page_token` with the same filters. To list one space's messages, pass `space_id` with `perspective_user_id`, the project's agent user in that space; Photon then does not accept `platform`, `created_since` or `created_before`.
 
 Results are Photon's objects as the API returns them. A message has `id`, `platform`, `space`, `sentBy`, `receivedBy` when Photon records it, `content`, `parentMessageId`, `status`, `timestamps`, and `acceptance` or `failure` when they apply; a text message's text is `content.text`. Each top-level field of a result is also a named output variable.
@@ -63,7 +75,8 @@ The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` 
 
 ## Limitations
 
-- Only existing spaces; no new conversations, inbound triggers, or delivery webhooks.
+- No inbound triggers or delivery webhooks.
+- Photon does not create users or spaces on Telegram (`OPERATION_UNAVAILABLE`); a Telegram conversation starts when the person messages the bot.
 - Sending covers text and images. Reading returns every content type.
 - Classic Agent apps cannot pass files to tools, so they send text only; workflows and the newer Agent can send images.
 

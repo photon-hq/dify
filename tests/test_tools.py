@@ -140,12 +140,24 @@ class ToolTests(unittest.TestCase):
                 )
                 self.queue({"items": [chat()]})
                 self.invoke("list_spaces", {}, credentials)
+                self.queue(chat())
+                self.invoke(
+                    "create_or_get_space",
+                    {"platform": "imessage", "participant_ids": f"{SENDER},{OTHER_SENDER}"},
+                    credentials,
+                )
                 self.queue({"items": [message()]})
                 self.invoke("list_messages", {}, credentials)
                 self.queue(message())
                 self.invoke("get_message", {"message_id": MESSAGE}, credentials)
                 self.queue(user())
                 self.invoke("get_user", {"user_id": SENDER}, credentials)
+                self.queue(user())
+                self.invoke(
+                    "create_or_get_user",
+                    {"platform": "imessage", "handle": "+14155550123"},
+                    credentials,
+                )
                 self.queue(attachment())
                 self.queue(PNG, content_type="image/png")
                 self.invoke("get_attachment", {"attachment_id": ATTACHMENT}, credentials)
@@ -462,6 +474,65 @@ class ToolTests(unittest.TestCase):
         result = self.invoke("get_user", {"user_id": OTHER_SENDER})
         self.assertEqual(self.calls[-1].url.path, f"/v1/projects/{PROJECT}/users/{OTHER_SENDER}")
         self.assertEqual(result, user(OTHER_SENDER, "human", "+14155550199"))
+
+    def test_create_or_get_user_sends_platform_and_handle_and_returns_photons_user(self):
+        self.queue(user(OTHER_SENDER, "human", "+14155550199"))
+        result = self.invoke("create_or_get_user", {"platform": "sms", "handle": "+14155550199"})
+        call = self.calls[-1]
+        self.assertEqual((call.method, call.url.path), ("POST", f"/v1/projects/{PROJECT}/users"))
+        self.assertEqual(self.body(), {"platform": "sms", "handle": "+14155550199"})
+        self.assertEqual(result, user(OTHER_SENDER, "human", "+14155550199"))
+
+    def test_create_or_get_space_sends_participants_and_returns_photons_space_with_its_key(self):
+        self.queue(chat(platform="sms"), status=201)
+        result = self.invoke(
+            "create_or_get_space",
+            {"platform": "sms", "participant_ids": f"{SENDER}, {OTHER_SENDER}"},
+        )
+        call = self.calls[-1]
+        self.assertEqual((call.method, call.url.path), ("POST", f"/v1/projects/{PROJECT}/spaces"))
+        self.assertEqual(self.body(), {"platform": "sms", "participantIds": [SENDER, OTHER_SENDER]})
+        self.assertEqual(UUID(call.headers["Idempotency-Key"]).version, 4)
+        self.assertEqual(
+            result, {**chat(platform="sms"), "idempotency_key": call.headers["Idempotency-Key"]}
+        )
+        self.queue(chat(platform="email"))
+        result = self.invoke(
+            "create_or_get_space",
+            {
+                "platform": "email",
+                "participant_ids": f"{SENDER},{OTHER_SENDER}",
+                "idempotency_key": "order-1042-thread",
+            },
+        )
+        self.assertEqual(self.calls[-1].headers["Idempotency-Key"], "order-1042-thread")
+        self.assertEqual(result["idempotency_key"], "order-1042-thread")
+
+    def test_create_or_get_space_errors_carry_the_generated_key(self):
+        issue = {"code": "invalid_value", "location": "body", "message": "needs an Agent"}
+        self.problem(422, "VALIDATION_FAILED", title="Request Validation Failed", issues=[issue])
+        error = self.fails(
+            "create_or_get_space", {"platform": "sms", "participant_ids": OTHER_SENDER}
+        )
+        self.assertEqual(
+            error,
+            "Photon API HTTP 422 (VALIDATION_FAILED): needs an Agent Generated idempotency_key: "
+            + self.calls[-1].headers["Idempotency-Key"],
+        )
+        self.calls.clear()
+        self.responses.extend([httpx.ConnectError("unreachable")] * 3)
+        error = self.fails(
+            "create_or_get_space",
+            {"platform": "sms", "participant_ids": SENDER, "idempotency_key": "k1"},
+        )
+        self.assertEqual(
+            [call.headers["Idempotency-Key"] for call in self.calls], ["k1", "k1", "k1"]
+        )
+        self.assertEqual(
+            error,
+            "Cannot reach Photon at https://api.photon.codes, or the request timed out. "
+            "Reuse the same idempotency_key for any retry.",
+        )
 
     def test_get_attachment_returns_metadata_and_the_file(self):
         self.queue(attachment())

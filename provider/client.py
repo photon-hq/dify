@@ -10,6 +10,8 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 from photon_api import ApiError, Photon, TransportError
 from photon_api import PhotonError as ClientError
 from photon_api.rpc_generated import (
+    CreateOrGetSpaceInput,
+    CreateOrGetUserInput,
     DownloadAttachmentInput,
     GetAttachmentInput,
     GetMessageInput,
@@ -28,9 +30,11 @@ MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024
 DEFAULT_PAGE_SIZE = 20
 INPUTS = {
     "list_spaces": ListSpacesInput,
+    "create_or_get_space": CreateOrGetSpaceInput,
     "list_messages": ListMessagesInput,
     "get_message": GetMessageInput,
     "get_user": GetUserInput,
+    "create_or_get_user": CreateOrGetUserInput,
     "send_message": SendMessageInput,
     "upload_attachment": UploadAttachmentInput,
     "get_attachment": GetAttachmentInput,

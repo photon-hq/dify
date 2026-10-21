@@ -10,14 +10,16 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 |---|---|
 | `send_message` | 向现有会话发送文字（`type: text`），或每张不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（`type: attachment`）。 |
 | `list_spaces` | 查看会话，可按渠道或参与者筛选。 |
+| `create_or_get_space` | 返回指定用户在一个渠道上的会话，没有时新建。 |
 | `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 |
 | `get_message` | 获取一条消息及其发送者、内容和投递状态。 |
 | `get_user` | 获取一个用户的联系方式，以及它是项目的代理用户还是普通联系人。 |
+| `create_or_get_user` | 返回一个渠道上某个电话号码或电子邮箱对应的用户，Photon 还没有时新建。 |
 | `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 |
 
 ## 配置
 
-1. 在 Photon 项目中连接要使用的渠道。插件只向现有会话发送，不会连接渠道或新建会话。
+1. 在 Photon 项目中连接要使用的渠道。插件不会连接渠道。
 2. 创建 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）。
 3. 从 Dify Marketplace 安装 **Photon**，然后在 **工具 > Photon** 中授权：
 
@@ -51,6 +53,16 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 - 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。
 
+要与新的联系人发起会话，先用 `create_or_get_user` 获取对方的用户，再用 `create_or_get_space` 获取会话，然后向该会话发送：
+
+```json
+{"platform": "sms", "handle": "+14155550123"}
+{"platform": "sms", "participant_ids": "pho_usr_<代理用户>,pho_usr_<联系人>"}
+```
+
+- `participant_ids` 必须包含负责发送的项目代理用户：该号码上收到的消息的 `receivedBy.id`，或用 `create_or_get_user` 查询该号码本身得到的用户（`kind: agent`）。在 iMessage 上，请把代理用户放在第一位。
+- Photon 已有的联系方式会返回已有的用户；参与者相同的单聊和短信群聊会返回已有会话。电子邮件中，每个新的 `idempotency_key` 都会开启一个新线程。
+
 列表工具返回 Photon 的分页结果：`items`，还有更多结果时另有 `nextPageToken`。要获取下一页，把它作为 `page_token` 传入，其他筛选条件保持不变。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
 
 结果就是 API 返回的 Photon 原始对象。消息包含 `id`、`platform`、`space`、`sentBy`、Photon 记录到的 `receivedBy`、`content`、`parentMessageId`、`status`、`timestamps`，以及适用时的 `acceptance` 或 `failure`；文字消息的正文在 `content.text`。结果的每个顶层字段都会同时作为同名输出变量。
@@ -63,7 +75,8 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 ## 限制
 
-- 只能使用现有会话；不能新建会话，没有入站触发器或投递回调。
+- 没有入站触发器或投递回调。
+- Photon 不能在 Telegram 上新建用户或会话（`OPERATION_UNAVAILABLE`）；Telegram 会话要由对方先给机器人发消息。
 - 发送支持文字和图片，读取支持所有内容类型。
 - 经典 Agent 应用不能把文件传给工具，所以只能发文字；工作流和新版 Agent 可以发图片。
 

@@ -1,0 +1,81 @@
+identity:
+  name: create_or_get_user
+  author: photon-hq
+  label:
+    en_US: Create or get user
+    zh_Hans: 创建或获取用户
+description:
+  human:
+    en_US: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for the project's own lines and accounts and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
+    zh_Hans: 在一个渠道上为电话号码或电子邮箱创建或获取对应的 Photon 用户，例如要发起会话的联系人。Photon 已经有这个联系方式时，返回已有的用户。kind 为 agent 表示项目自己的号码和账号，human 表示其他人，因此用项目自己的号码会得到项目的代理用户。可把用户 ID 传给 create_or_get_space。Photon 在 Telegram 上不提供此操作，Telegram 会话要由对方先给机器人发消息。
+  llm: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for the project's own lines and accounts and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
+parameters:
+- name: platform
+  type: select
+  required: true
+  label:
+    en_US: Platform
+    zh_Hans: 渠道
+  human_description:
+    en_US: Platform the handle is used on.
+    zh_Hans: 该联系方式所在的渠道。
+  llm_description: Platform the handle is used on.
+  form: llm
+  options:
+  - value: imessage
+    label:
+      en_US: iMessage
+      zh_Hans: iMessage
+  - value: sms
+    label:
+      en_US: SMS
+      zh_Hans: 短信（SMS）
+  - value: whatsapp
+    label:
+      en_US: WhatsApp
+      zh_Hans: WhatsApp
+  - value: whatsapp_business
+    label:
+      en_US: WhatsApp Business
+      zh_Hans: WhatsApp Business
+  - value: email
+    label:
+      en_US: Email
+      zh_Hans: 电子邮件
+  - value: telegram
+    label:
+      en_US: Telegram
+      zh_Hans: Telegram
+- name: handle
+  type: string
+  required: true
+  label:
+    en_US: Handle
+    zh_Hans: 联系方式
+  human_description:
+    en_US: Phone number in E.164 format, for example +14155550123, or email address.
+    zh_Hans: E.164 格式的电话号码（例如 +14155550123）或电子邮箱。
+  llm_description: Phone number in E.164 format, for example +14155550123, or email address.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    platform:
+      type: string
+    kind:
+      type: string
+    handle:
+      type: string
+    details:
+      type: object
+    metadata:
+      type: object
+    createdAt:
+      type: string
+    updatedAt:
+      type: string
+extra:
+  python:
+    source: tools/create_or_get_user.py

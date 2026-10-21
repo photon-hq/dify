@@ -17,9 +17,9 @@ parameters:
     en_US: Space ID
     zh_Hans: 会话 ID
   human_description:
-    en_US: Existing space ID (pho_spc_…), from list_spaces or a message's space.id. Its platform decides the channel.
-    zh_Hans: 现有会话 ID（pho_spc_…），可从 list_spaces 或消息的 space.id 获取，会话所属平台决定发送渠道。
-  llm_description: Existing space ID (pho_spc_…), from list_spaces or a message's space.id. Its platform decides the channel.
+    en_US: Existing space ID (pho_spc_…), from list_spaces, create_or_get_space, or a message's space.id. Its platform decides the channel.
+    zh_Hans: 现有会话 ID（pho_spc_…），可从 list_spaces、create_or_get_space 或消息的 space.id 获取，会话所属平台决定发送渠道。
+  llm_description: Existing space ID (pho_spc_…), from list_spaces, create_or_get_space, or a message's space.id. Its platform decides the channel.
   form: llm
 - name: type
   type: select
