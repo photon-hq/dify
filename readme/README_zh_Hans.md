@@ -51,7 +51,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 列表工具返回 `items` 和 `next_page_token`。请把令牌作为 `page_token` 传回，并保持筛选条件不变，直到令牌为 `null`，即使某一页为空也要继续。`list_messages` 会在读取的每一页内按 `space_id` 筛选，所以一页中的匹配结果可能少于 `page_size`。
 
-消息包含 `id`、`platform`、`space_id`、`direction`（`received` 或 `sent`）、`type`、`text`、`attachment_ids`、`content`（Photon 原始结构的完整内容）、`parent_message_id`、`status`、`delivery_confirmed`、`timestamps` 和 `failure`。除 `text` 外，每个顶层字段都会同时作为同名输出变量；`text` 填入 Dify 自带的 `text` 输出。
+消息包含 `id`、`platform`、`space_id`、`direction`（`received` 或 `sent`）、`type`、`text`、`attachment_ids`、`content`（Photon 原始结构的完整内容）、`parent_message_id`、`status`、`delivery_confirmed`、`timestamps` 和 `failure`。每个结果的顶层字段都会同时作为同名输出变量，但消息的 `text` 例外：消息有文本时，它填入 Dify 自带的 `text` 输出。列表工具的顶层字段是 `items` 和 `next_page_token`，每条消息的字段都在 `items` 里。
 
 `get_attachment` 以 Dify 文件输出返回附件，例如可传给视觉模型。超过 50 MB（Dify 对插件返回文件的默认上限）的文件不会下载。
 
