@@ -27,7 +27,7 @@ meta:
     language: python
     version: "3.12"
     entrypoint: main
-  minimum_dify_version: "1.0.0"
+  minimum_dify_version: "1.17.1"
 privacy: PRIVACY.md
 repo: https://github.com/photon-hq/dify
 contact: help@photon.codes
