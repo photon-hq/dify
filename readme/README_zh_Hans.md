@@ -95,6 +95,8 @@ python -m unittest discover -s tests
 
 测试会模拟 Photon 和 Dify 的文件下载，不会发送真实消息。
 
+每次合并到 `main` 都会发布一个 GitHub 预发布版本，其中包含默认连接 Photon staging API 的 staging 构建和正式候选。正式版需要手动运行 **Promote to production** 工作流发布。
+
 ## 许可证
 
 [MIT](../LICENSE)

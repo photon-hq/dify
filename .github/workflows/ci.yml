@@ -1,0 +1,57 @@
+name: CI
+
+# Tests the plugin and packs both release channels: on every pull request, and
+# for publish-staging.yml on every push to main.
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DIFY_CLI_VERSION: 0.6.11
+  DIFY_CLI_SHA256: e68208928fbd8e7bc2c4cf0943f5091f8fbd0a25119ab4f36d6071b94a69a6fc
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the Dify plugin CLI
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/dify" "https://github.com/langgenius/dify-plugin-daemon/releases/download/$DIFY_CLI_VERSION/dify-plugin-linux-amd64"
+          echo "$DIFY_CLI_SHA256  $RUNNER_TEMP/dify" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/dify"
+      # The staging build defaults to Photon's staging API; the production candidate is X.Y.Z.
+      - name: Pack the staging build and the production candidate
+        env:
+          DIFY_CLI: ${{ runner.temp }}/dify
+          PACK_DESTINATION: dist
+        run: |
+          RELEASE_CHANNEL=staging RELEASE_SUFFIX="-staging$GITHUB_RUN_NUMBER" scripts/pack.sh
+          RELEASE_CHANNEL=production scripts/pack.sh
+          test -z "$(git status --porcelain --untracked-files=no)"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: difypkg
+          path: dist/*.difypkg
+          if-no-files-found: error

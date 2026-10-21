@@ -1,0 +1,58 @@
+name: Publish staging
+
+# Every push to main is tested and packed once by ci.yml. The staging build,
+# X.Y.Z-staging<run number>, and the production candidate, X.Y.Z, go on a GitHub
+# prerelease dify-staging-<staging version>, with their SHA-256s and the source
+# commit in release-manifest.json. promote.yml publishes that candidate; nothing
+# is rebuilt.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-staging
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  stage:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: difypkg
+          path: dist
+      - name: Create the staging prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for file in dist/photon-*.difypkg; do
+            case "$file" in
+              *-staging*) staging=${file#dist/} ;;
+              *) production=${file#dist/} ;;
+            esac
+          done
+          version=${staging#photon-}
+          version=${version%.difypkg}
+          tag="dify-staging-$version"
+          python3 - "$GITHUB_SHA" "$staging" "$production" > dist/release-manifest.json <<'PY'
+          import hashlib, json, sys
+          commit, staging, production = sys.argv[1:]
+          files = {name: hashlib.sha256(open(f"dist/{name}", "rb").read()).hexdigest() for name in (staging, production)}
+          print(json.dumps({"commit": commit, "staging": staging, "production": production, "sha256": files}, indent=2))
+          PY
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/*.difypkg dist/release-manifest.json --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$tag" dist/*.difypkg dist/release-manifest.json --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --prerelease --title "$tag" --notes "Staging build $staging, which defaults to Photon's staging API, and production candidate $production, from $GITHUB_SHA."
+          fi

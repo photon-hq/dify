@@ -1,0 +1,54 @@
+name: Promote to production
+
+# Publishes a staging build's stored production candidate, unchanged, as the
+# vX.Y.Z release on its source commit. Run it by hand, for example:
+# gh workflow run promote.yml -f staging-version=0.1.0-staging12
+on:
+  workflow_dispatch:
+    inputs:
+      staging-version:
+        description: Staging build to promote; blank promotes the latest staging build
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Publish the production candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STAGING_VERSION: ${{ inputs.staging-version }}
+        run: |
+          if [ -n "$STAGING_VERSION" ]; then
+            tag="dify-staging-$STAGING_VERSION"
+          else
+            tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isPrerelease,createdAt \
+              --jq '[.[] | select(.isPrerelease and (.tagName | startswith("dify-staging-")))] | sort_by(.createdAt) | last | .tagName // ""')
+          fi
+          test -n "$tag" || { echo "::error::No staging build to promote"; exit 1; }
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir files
+          # Fails the step unless every file matches release-manifest.json.
+          checked=$(python3 - <<'PY'
+          import hashlib, json
+          manifest = json.load(open("files/release-manifest.json"))
+          for name, digest in manifest["sha256"].items():
+              assert hashlib.sha256(open(f"files/{name}", "rb").read()).hexdigest() == digest, f"{name} does not match release-manifest.json"
+          production = manifest["production"]
+          print(production.removeprefix("photon-").removesuffix(".difypkg"), manifest["commit"], production)
+          PY
+          )
+          read -r version commit production <<< "$checked"
+          if gh release view "v$version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::v$version is already released"
+            exit 1
+          fi
+          gh release create "v$version" "files/$production" --repo "$GITHUB_REPOSITORY" --target "$commit" \
+            --title "v$version" --notes "Production release of $production, promoted from $tag ($commit)."

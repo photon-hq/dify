@@ -95,6 +95,8 @@ python -m unittest discover -s tests
 
 The tests mock Photon and Dify's file downloads and never send messages.
 
+Every merge to `main` publishes a GitHub prerelease with a staging build, which defaults to Photon's staging API, and the production candidate. The production release is published by running the **Promote to production** workflow.
+
 ## License
 
 [MIT](LICENSE)
