@@ -41,6 +41,10 @@ class PhotonError(ValueError):
     """An error to show the Dify user."""
 
 
+class UnknownOutcome(PhotonError):
+    """Photon may have handled the request, but no readable response came back."""
+
+
 def query_params(parameters: dict[str, Any], names: dict[str, str]) -> dict[str, Any]:
     """Photon query parameters for the tool parameters that are set."""
     return {
@@ -184,14 +188,11 @@ class PhotonClient:
         except ApiError as error:
             raise PhotonError(api_error_message(error)) from None
         except TransportError:
-            raise PhotonError(
-                f"Cannot reach Photon at {self.origin}, or the request timed out. If sending, "
-                "check the message history and reuse the same idempotency_key for any retry."
+            raise UnknownOutcome(
+                f"Cannot reach Photon at {self.origin}, or the request timed out."
             ) from None
         except ClientError as error:
-            raise PhotonError(
-                f"{error}. If sending, check the message history before resending."
-            ) from None
+            raise UnknownOutcome(f"{error}.") from None
         return result if isinstance(result, bytes) else result.model_dump(mode="json")
 
     def upload_attachment(

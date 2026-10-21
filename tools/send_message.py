@@ -12,6 +12,7 @@ from provider.client import (
     SEND_TYPES,
     PhotonClient,
     PhotonError,
+    UnknownOutcome,
     normalize_message,
     tool_messages,
 )
@@ -71,8 +72,14 @@ class SendMessageTool(Tool):
                 client.call("send_message", headers={"idempotency-key": key}, body=body)
             )
         except PhotonError as error:
+            reason = str(error)
+            if isinstance(error, UnknownOutcome):
+                reason += (
+                    " Check the message history before resending, "
+                    "and reuse the same idempotency_key for any retry."
+                )
             if generated:
-                raise PhotonError(f"{error} Generated idempotency_key: {key}") from None
-            raise
+                reason += f" Generated idempotency_key: {key}"
+            raise PhotonError(reason) from None
         result["idempotency_key"] = key
         yield from tool_messages(self, result)

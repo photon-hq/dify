@@ -409,9 +409,16 @@ class ToolTests(unittest.TestCase):
         self.responses.extend([httpx.ConnectError("unreachable")] * 3)
         error = self.fails("send_message", {"space_id": SPACE, "text": "Hi"})
         self.assertEqual(len(self.calls), 3)
-        self.assertIn("Cannot reach Photon at https://api.photon.codes", error)
-        self.assertIn(
-            "Generated idempotency_key: " + self.calls[0].headers["Idempotency-Key"], error
+        self.assertEqual(
+            error,
+            "Cannot reach Photon at https://api.photon.codes, or the request timed out. "
+            "Check the message history before resending, and reuse the same idempotency_key "
+            "for any retry. Generated idempotency_key: " + self.calls[0].headers["Idempotency-Key"],
+        )
+        self.responses.extend([httpx.ConnectError("unreachable")] * 3)
+        self.assertEqual(
+            self.fails("get_message", {"message_id": MESSAGE}),
+            "Cannot reach Photon at https://api.photon.codes, or the request timed out.",
         )
 
     def test_list_spaces_passes_filters_and_returns_spaces(self):
