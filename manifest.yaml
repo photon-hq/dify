@@ -1,4 +1,4 @@
-version: 0.2.0
+version: 0.1.0
 type: plugin
 author: photon-hq
 name: photon
@@ -19,7 +19,7 @@ plugins:
   tools:
     - provider/photon.yaml
 meta:
-  version: 0.2.0
+  version: 0.0.1
   arch:
     - amd64
     - arm64

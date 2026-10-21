@@ -6,8 +6,6 @@ __pycache__/
 .ruff_cache/
 *.difypkg
 *.log
-dist/
-validation-report/
 .DS_Store
 .idea/
 .vscode/
