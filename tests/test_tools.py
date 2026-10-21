@@ -109,7 +109,9 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result[0].type.value, "json")
         payload = result[0].message.json_object
         self.blobs = [item for item in result if item.type.value == "blob"]
-        variables = [item for item in result[1:] if item.type.value != "blob"]
+        texts = [item.message.text for item in result if item.type.value == "text"]
+        self.assertEqual(texts, [payload["text"]] if payload.get("text") else [])
+        variables = [item for item in result[1:] if item.type.value not in ("blob", "text")]
         expected = {
             key: value for key, value in payload.items() if key not in {"text", "files", "json"}
         }
@@ -157,7 +159,7 @@ class ToolTests(unittest.TestCase):
             str(raised.exception), "Photon API HTTP 401 (NOT_AUTHENTICATED): Not Authenticated"
         )
 
-    def test_message_text_is_in_the_json_result_but_not_a_named_variable(self):
+    def test_message_text_fills_the_text_output_but_is_not_a_named_variable(self):
         self.queue(message(text="Hello"), status=202)
         self.assertEqual(
             self.invoke("send_message", {"space_id": SPACE, "text": "Hello"})["text"], "Hello"

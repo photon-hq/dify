@@ -78,9 +78,12 @@ def api_error_message(error: ApiError) -> str:
 def tool_messages(tool: Tool, result: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
     """The result as one JSON message, then each top-level field as a named variable.
 
-    Fields with Dify's reserved names stay in the JSON message only.
+    A message's text fills Dify's own text output instead; other fields with Dify's reserved
+    names stay in the JSON message only.
     """
     yield tool.create_json_message(result)
+    if result.get("text"):
+        yield tool.create_text_message(result["text"])
     for name, value in result.items():
         if name not in DIFY_RESERVED_NAMES:
             yield tool.create_variable_message(name, value)
