@@ -6,9 +6,9 @@ identity:
     zh_Hans: 获取附件
 description:
   human:
-    en_US: Fetch an attachment's metadata and file by the ID from a message's attachment_ids. The file is returned to Dify as a file output, for example to pass an image to a vision model.
-    zh_Hans: 根据消息 attachment_ids 中的 ID 获取附件的元数据和文件。文件会作为 Dify 文件输出返回，例如可以把图片传给视觉模型。
-  llm: Fetch an attachment's metadata and file by the ID from a message's attachment_ids. The file is returned to Dify as a file output, for example to pass an image to a vision model.
+    en_US: Fetch an attachment's metadata and file by the ID from a message's attachment_ids. The file is returned to Dify as a file output, for example to pass an image to a vision model. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
+    zh_Hans: 根据消息 attachment_ids 中的 ID 获取附件的元数据和文件。文件会作为 Dify 文件输出返回，例如可以把图片传给视觉模型。超过 50 MB（Dify 对插件返回文件的默认上限）的文件不会下载。
+  llm: Fetch an attachment's metadata and file by the ID from a message's attachment_ids. The file is returned to Dify as a file output, for example to pass an image to a vision model. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
 parameters:
 - name: attachment_id
   type: string
@@ -17,9 +17,9 @@ parameters:
     en_US: Attachment ID
     zh_Hans: 附件 ID
   human_description:
-    en_US: Attachment ID (pho_att_ plus the full 26-character ID) from a message's attachment_ids.
-    zh_Hans: 消息 attachment_ids 中的附件 ID，由 pho_att_ 前缀及完整的 26 位标识组成。
-  llm_description: Attachment ID (pho_att_ plus the full 26-character ID) from a message's attachment_ids.
+    en_US: Attachment ID (pho_att_…) from a message's attachment_ids.
+    zh_Hans: 消息 attachment_ids 中的附件 ID（pho_att_…）。
+  llm_description: Attachment ID (pho_att_…) from a message's attachment_ids.
   form: llm
 output_schema:
   type: object

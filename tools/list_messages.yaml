@@ -105,9 +105,9 @@ parameters:
     en_US: Page size
     zh_Hans: 每页数量
   human_description:
-    en_US: Positive integer; default 20, capped at 200 upstream items per call.
-    zh_Hans: 正整数，默认 20；每次调用最多从 Photon 读取 200 条记录。
-  llm_description: Positive integer; default 20, capped at 200 upstream items per call.
+    en_US: Default 20; Photon returns at most 200 per page.
+    zh_Hans: 默认 20；Photon 每页最多返回 200 条。
+  llm_description: Default 20; Photon returns at most 200 per page.
   form: llm
   default: 20
   min: 1
@@ -140,9 +140,9 @@ parameters:
     en_US: Created before
     zh_Hans: 创建时间上限
   human_description:
-    en_US: Exclusive upper creation-time bound, RFC 3339 with timezone; must be after created_since.
-    zh_Hans: 创建时间上限（不含），须为带时区的 RFC 3339 时间，且晚于 created_since。
-  llm_description: Exclusive upper creation-time bound, RFC 3339 with timezone; must be after created_since.
+    en_US: Exclusive upper creation-time bound, RFC 3339 with timezone.
+    zh_Hans: 创建时间上限（不含），须为带时区的 RFC 3339 时间。
+  llm_description: Exclusive upper creation-time bound, RFC 3339 with timezone.
   form: llm
 output_schema:
   type: object

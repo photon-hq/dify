@@ -17,9 +17,9 @@ parameters:
     en_US: Message ID
     zh_Hans: 消息 ID
   human_description:
-    en_US: Photon message ID (pho_msg_ plus the full 26-character ID) returned by send_message or list_messages.
-    zh_Hans: send_message 或 list_messages 返回的 Photon 消息 ID，由 pho_msg_ 前缀及完整的 26 位标识组成。
-  llm_description: Photon message ID (pho_msg_ plus the full 26-character ID) returned by send_message or list_messages.
+    en_US: Photon message ID (pho_msg_…) returned by send_message or list_messages.
+    zh_Hans: send_message 或 list_messages 返回的 Photon 消息 ID（pho_msg_…）。
+  llm_description: Photon message ID (pho_msg_…) returned by send_message or list_messages.
   form: llm
 output_schema:
   type: object

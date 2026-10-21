@@ -53,9 +53,9 @@ parameters:
     en_US: Page size
     zh_Hans: 每页数量
   human_description:
-    en_US: Positive integer; default 20, capped at 100 upstream items per call.
-    zh_Hans: 正整数，默认 20；每次调用最多从 Photon 读取 100 条记录。
-  llm_description: Positive integer; default 20, capped at 100 upstream items per call.
+    en_US: Default 20; Photon returns at most 100 per page.
+    zh_Hans: 默认 20；Photon 每页最多返回 100 条。
+  llm_description: Default 20; Photon returns at most 100 per page.
   form: llm
   default: 20
   min: 1
@@ -77,9 +77,9 @@ parameters:
     en_US: Participant handle
     zh_Hans: 参与者联系方式
   human_description:
-    en_US: Optional participant phone number or email address, at most 320 characters; for example +14155550123. Matching is case-insensitive.
-    zh_Hans: 可选的参与者电话号码或电子邮箱，最多 320 个字符，例如 +14155550123。匹配时不区分大小写。
-  llm_description: Optional participant phone number or email address, at most 320 characters; for example +14155550123. Matching is case-insensitive.
+    en_US: Optional participant phone number or email address, for example +14155550123. Matching is case-insensitive.
+    zh_Hans: 可选的参与者电话号码或电子邮箱，例如 +14155550123。匹配时不区分大小写。
+  llm_description: Optional participant phone number or email address, for example +14155550123. Matching is case-insensitive.
   form: llm
 - name: order
   type: select
