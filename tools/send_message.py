@@ -6,7 +6,15 @@ from uuid import uuid4
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from provider.client import IMAGE_TYPES, MAX_IMAGE_BYTES, SEND_TYPES, PhotonClient, PhotonError, normalize_message
+from provider.client import (
+    IMAGE_TYPES,
+    MAX_IMAGE_BYTES,
+    SEND_TYPES,
+    PhotonClient,
+    PhotonError,
+    normalize_message,
+    tool_messages,
+)
 
 
 class SendMessageTool(Tool):
@@ -14,7 +22,10 @@ class SendMessageTool(Tool):
         client = PhotonClient(self.runtime.credentials)
         sender = tool_parameters.get("sender_id") or client.default_sender_id
         if not sender:
-            raise PhotonError("Provide sender_id or configure default_sender_id with a project-owned Photon agent user ID.")
+            raise PhotonError(
+                "Provide sender_id or configure default_sender_id "
+                "with a project-owned Photon agent user ID."
+            )
         kind = tool_parameters.get("type") or "text"
         if kind not in SEND_TYPES:
             raise PhotonError(f"type must be one of {', '.join(SEND_TYPES)}.")
@@ -25,11 +36,16 @@ class SendMessageTool(Tool):
         if kind == "text" and text is None:
             raise PhotonError("type text requires text.")
         if kind == "text" and files:
-            raise PhotonError("type text does not take attachments; use type attachment to send images.")
+            raise PhotonError(
+                "type text does not take attachments; use type attachment to send images."
+            )
         if kind == "attachment" and not files:
             raise PhotonError("type attachment requires at least one image in attachments.")
         if any(getattr(file, "mime_type", None) not in IMAGE_TYPES for file in files):
-            raise PhotonError("attachments must be JPEG, PNG, GIF, or WebP images; other file types are not supported yet.")
+            raise PhotonError(
+                "attachments must be JPEG, PNG, GIF, or WebP images; "
+                "other file types are not supported yet."
+            )
         key = tool_parameters.get("idempotency_key") or None
         generated = key is None
         if generated:
@@ -46,16 +62,17 @@ class SendMessageTool(Tool):
             parts = [] if text is None else [{"type": "text", "format": "plain", "text": text}]
             for index, (file, data) in enumerate(images):
                 upload_key = f"{hashlib.sha256(key.encode()).hexdigest()}.attachment.{index}"
-                attachment = client.upload_attachment(data, file.mime_type, file.filename, upload_key)
+                attachment = client.upload_attachment(
+                    data, file.mime_type, file.filename, upload_key
+                )
                 parts.append({"type": "attachment", "attachmentId": attachment["id"]})
             body["content"] = parts[0] if len(parts) == 1 else {"type": "group", "parts": parts}
-            result = normalize_message(client.call("send_message", headers={"idempotency-key": key}, body=body))
+            result = normalize_message(
+                client.call("send_message", headers={"idempotency-key": key}, body=body)
+            )
         except PhotonError as error:
             if generated:
                 raise PhotonError(f"{error} Generated idempotency_key: {key}") from None
             raise
         result["idempotency_key"] = key
-        yield self.create_json_message(result)
-        for name, value in result.items():
-            if name not in {"text", "files", "json"}:
-                yield self.create_variable_message(name, value)
+        yield from tool_messages(self, result)

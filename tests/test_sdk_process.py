@@ -1,7 +1,5 @@
 """HTTP /invoke -> SDK router -> tools -> mocked HTTPS -> JSON stream."""
 
-import dify_plugin  # Initialize the SDK before HTTP imports.
-
 import json
 import os
 import socket
@@ -13,7 +11,6 @@ from pathlib import Path
 from uuid import uuid4
 
 import httpx
-
 from fixtures import CREDENTIALS, CURSOR, FAILED_MESSAGE, KEY, MESSAGE, MISSING_MESSAGE, SPACE
 
 
@@ -22,9 +19,22 @@ class SDKProcessTests(unittest.TestCase):
         with socket.socket() as listener:
             listener.bind(("127.0.0.1", 0))
             port = listener.getsockname()[1]
-        env = {**os.environ, "INSTALL_METHOD": "serverless", "SERVERLESS_HOST": "127.0.0.1", "SERVERLESS_PORT": str(port), "PYTHONUNBUFFERED": "1"}
+        env = {
+            **os.environ,
+            "INSTALL_METHOD": "serverless",
+            "SERVERLESS_HOST": "127.0.0.1",
+            "SERVERLESS_PORT": str(port),
+            "PYTHONUNBUFFERED": "1",
+        }
         runner = Path(__file__).with_name("sdk_fixture_runner.py")
-        process = subprocess.Popen([sys.executable, str(runner)], cwd=Path.cwd(), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(
+            [sys.executable, str(runner)],
+            cwd=Path.cwd(),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         base = f"http://127.0.0.1:{port}"
         session = httpx.Client(trust_env=False)
         try:
@@ -42,10 +52,20 @@ class SDKProcessTests(unittest.TestCase):
                 self.fail("SDK fixture process did not become healthy")
 
             def invoke(tool=None, parameters=None, credentials=None):
-                data = {"type": "tool", "action": "invoke_tool" if tool else "validate_tool_credentials", "user_id": "local-test", "provider": "photon", "credentials": credentials or CREDENTIALS}
+                data = {
+                    "type": "tool",
+                    "action": "invoke_tool" if tool else "validate_tool_credentials",
+                    "user_id": "local-test",
+                    "provider": "photon",
+                    "credentials": credentials or CREDENTIALS,
+                }
                 if tool:
                     data.update(tool=tool, tool_parameters=parameters or {})
-                response = session.post(base + "/invoke", json={"session_id": str(uuid4()), "event": "request", "data": data}, timeout=5)
+                response = session.post(
+                    base + "/invoke",
+                    json={"session_id": str(uuid4()), "event": "request", "data": data},
+                    timeout=5,
+                )
                 self.assertEqual(response.status_code, 200)
                 self.assertNotIn(KEY, response.text)
                 return [json.loads(line) for line in response.text.splitlines() if line.strip()]
@@ -56,20 +76,39 @@ class SDKProcessTests(unittest.TestCase):
                 self.assertTrue(messages, "Missing tool output in SDK stream")
                 self.assertEqual(messages[0]["type"], "json")
                 result = messages[0]["message"]["json_object"]
-                expected = {key: value for key, value in result.items() if key not in {"text", "files", "json"}}
-                self.assertEqual([data["type"] for data in messages], ["json"] + ["variable"] * len(expected))
+                expected = {
+                    key: value
+                    for key, value in result.items()
+                    if key not in {"text", "files", "json"}
+                }
+                self.assertEqual(
+                    [data["type"] for data in messages], ["json"] + ["variable"] * len(expected)
+                )
                 variables = [data["message"] for data in messages[1:]]
                 self.assertEqual([item["variable_name"] for item in variables], list(expected))
-                self.assertEqual({item["variable_name"]: item["variable_value"] for item in variables}, expected)
-                self.assertFalse({"text", "files", "json"} & {item["variable_name"] for item in variables})
+                self.assertEqual(
+                    {item["variable_name"]: item["variable_value"] for item in variables}, expected
+                )
+                self.assertFalse(
+                    {"text", "files", "json"} & {item["variable_name"] for item in variables}
+                )
                 return result
 
             events = invoke()
-            self.assertTrue(any(event.get("data", {}).get("data", {}).get("result") is True for event in events), json.dumps(events))
+            self.assertTrue(
+                any(
+                    event.get("data", {}).get("data", {}).get("result") is True for event in events
+                ),
+                json.dumps(events),
+            )
             chats = payload(invoke("list_spaces", {}))
             self.assertEqual(chats["items"][0]["id"], SPACE)
             self.assertEqual(chats["next_page_token"], CURSOR)
-            send_parameters = {"space_id": SPACE, "text": "SDK process test.", "idempotency_key": "process-stable-key"}
+            send_parameters = {
+                "space_id": SPACE,
+                "text": "SDK process test.",
+                "idempotency_key": "process-stable-key",
+            }
             sent = payload(invoke("send_message", send_parameters))
             self.assertEqual(sent["id"], MESSAGE)
             self.assertEqual(sent["status"], "dispatched")
@@ -81,10 +120,25 @@ class SDKProcessTests(unittest.TestCase):
             self.assertEqual(payload(invoke("send_message", send_parameters))["id"], MESSAGE)
             conflict = invoke("send_message", {**send_parameters, "text": "Changed body"})
             self.assertIn("IDEMPOTENCY_KEY_REUSED", json.dumps(conflict))
-            first = payload(invoke("list_messages", {"space_id": SPACE, "platform": "imessage", "direction": "sent"}))
+            first = payload(
+                invoke(
+                    "list_messages",
+                    {"space_id": SPACE, "platform": "imessage", "direction": "sent"},
+                )
+            )
             self.assertEqual(first["items"], [])
             self.assertEqual(first["next_page_token"], CURSOR)
-            second = payload(invoke("list_messages", {"space_id": SPACE, "platform": "imessage", "direction": "sent", "page_token": first["next_page_token"]}))
+            second = payload(
+                invoke(
+                    "list_messages",
+                    {
+                        "space_id": SPACE,
+                        "platform": "imessage",
+                        "direction": "sent",
+                        "page_token": first["next_page_token"],
+                    },
+                )
+            )
             self.assertEqual(second["items"][0]["id"], MESSAGE)
             self.assertIsNone(second["next_page_token"])
             failure = payload(invoke("get_message", {"message_id": FAILED_MESSAGE}))

@@ -12,4 +12,6 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(provider["identity"]["author"], manifest["author"])
         for path in provider["tools"]:
             with self.subTest(tool=path):
-                self.assertEqual(yaml.safe_load(Path(path).read_text())["identity"]["author"], manifest["author"])
+                self.assertEqual(
+                    yaml.safe_load(Path(path).read_text())["identity"]["author"], manifest["author"]
+                )

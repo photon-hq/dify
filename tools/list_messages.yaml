@@ -270,15 +270,9 @@ output_schema:
       type:
       - string
       - 'null'
-    scanned_count:
-      type: integer
-    space_filter_applied_locally:
-      type: boolean
   required:
   - items
   - next_page_token
-  - scanned_count
-  - space_filter_applied_locally
   additionalProperties: false
 extra:
   python:

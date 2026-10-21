@@ -1,6 +1,7 @@
 .git
 .gitignore
 .difyignore
+ruff.toml
 .github/
 .env*
 __pycache__/
