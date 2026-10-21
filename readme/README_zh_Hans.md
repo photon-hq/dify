@@ -10,7 +10,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 |---|---|
 | `send_message` | 向现有会话发送文字（`type: text`），或每张不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（`type: attachment`）。 |
 | `list_spaces` | 查看会话，可按渠道或参与者筛选。 |
-| `list_messages` | 按渠道、方向、创建时间和会话查看消息。 |
+| `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 |
 | `get_message` | 获取一条消息及其内容和投递状态。 |
 | `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 |
 
@@ -49,7 +49,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 - 发送是异步的：结果通常是 `dispatched`。之后请调用 `get_message`，只有 `delivered` 才会把 `delivery_confirmed` 设为 `true`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。
 
-列表工具返回 `items` 和 `next_page_token`。请把令牌作为 `page_token` 传回，并保持筛选条件不变，直到令牌为 `null`，即使某一页为空也要继续。`list_messages` 会在读取的每一页内按 `space_id` 筛选，所以一页中的匹配结果可能少于 `page_size`。
+列表工具返回 `items` 和 `next_page_token`。请把令牌作为 `page_token` 传回，并保持筛选条件不变，直到令牌为 `null`，即使某一页为空也要继续。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
 
 消息包含 `id`、`platform`、`space_id`、`direction`（`received` 或 `sent`）、`type`、`text`、`attachment_ids`、`content`（Photon 原始结构的完整内容）、`parent_message_id`、`status`、`delivery_confirmed`、`timestamps` 和 `failure`。每个结果的顶层字段都会同时作为同名输出变量，但消息的 `text` 例外：消息有文本时，它填入 Dify 自带的 `text` 输出。列表工具的顶层字段是 `items` 和 `next_page_token`，每条消息的字段都在 `items` 里。
 

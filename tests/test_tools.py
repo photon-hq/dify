@@ -441,7 +441,7 @@ class ToolTests(unittest.TestCase):
         )
         self.assertEqual(self.query(), {"pageSize": "20"})
 
-    def test_list_messages_passes_filters_and_filters_one_space_locally(self):
+    def test_list_messages_passes_filters_and_returns_photon_items(self):
         self.queue(
             {
                 "items": [message(space=SPACE), message("delivered", space=OTHER_SPACE)],
@@ -452,7 +452,6 @@ class ToolTests(unittest.TestCase):
             "list_messages",
             {
                 "platform": "imessage",
-                "space_id": SPACE,
                 "direction": "sent",
                 "order": "asc",
                 "page_size": 200,
@@ -471,9 +470,15 @@ class ToolTests(unittest.TestCase):
                 "createdBefore": "2026-10-20T00:00:00Z",
             },
         )
-        self.assertEqual([item["space_id"] for item in result["items"]], [SPACE])
+        self.assertEqual([item["space_id"] for item in result["items"]], [SPACE, OTHER_SPACE])
         self.assertEqual(set(result), {"items", "next_page_token"})
         self.assertEqual(result["next_page_token"], CURSOR)
+        self.queue({"items": [message(), message("received")]})
+        result = self.invoke("list_messages", {"space_id": SPACE, "perspective_user_id": SENDER})
+        self.assertEqual(
+            self.query(), {"pageSize": "20", "spaceId": SPACE, "perspectiveUserId": SENDER}
+        )
+        self.assertEqual([item["status"] for item in result["items"]], ["dispatched", "received"])
 
     def test_get_message_returns_status_timestamps_and_failure(self):
         self.queue(message("failed"))

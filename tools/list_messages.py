@@ -22,6 +22,8 @@ class ListMessagesTool(Tool):
                 tool_parameters,
                 {
                     "platform": "platform",
+                    "space_id": "spaceId",
+                    "perspective_user_id": "perspectiveUserId",
                     "direction": "direction",
                     "order": "order",
                     "created_since": "createdSince",
@@ -31,12 +33,9 @@ class ListMessagesTool(Tool):
                 },
             ),
         }
-        space = tool_parameters.get("space_id") or None
-        # API spaceId needs resourceId or perspectiveUserId; perspectives forbid
-        # platform/time filters. Filter this bounded project page locally instead.
         data = client.call("list_messages", query=query)
-        items = [normalize_message(item) for item in data["items"]]
-        if space is not None:
-            items = [item for item in items if item["space_id"] == space]
-        result = {"items": items, "next_page_token": data.get("nextPageToken")}
+        result = {
+            "items": [normalize_message(item) for item in data["items"]],
+            "next_page_token": data.get("nextPageToken"),
+        }
         yield from tool_messages(self, result)

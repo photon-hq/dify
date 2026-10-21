@@ -6,9 +6,9 @@ identity:
     zh_Hans: 查看消息
 description:
   human:
-    en_US: List one page of messages across all channels, or one platform. Optional space_id filters the fetched project page locally; an empty items array may still have a next_page_token. Continue until the token is null.
-    zh_Hans: 分页查看所有渠道或单个渠道的消息。可选的 space_id 在本地筛选已读取的项目消息页；即使 items 数组为空，也可能存在 next_page_token，应继续查询直到令牌为 null。
-  llm: List one page of messages across all channels, or one platform. Optional space_id filters the fetched project page locally; an empty items array may still have a next_page_token. Continue until the token is null.
+    en_US: List one page of messages across all channels or one platform, or one space's messages with space_id and perspective_user_id. Continue with next_page_token until null, including after empty pages.
+    zh_Hans: 分页查看所有渠道或单个渠道的消息，或用 space_id 加 perspective_user_id 查看单个会话的消息。即使当前页为空，也应使用 next_page_token 继续查询，直到该值为 null。
+  llm: List one page of messages across all channels or one platform, or one space's messages with space_id and perspective_user_id. Continue with next_page_token until null, including after empty pages.
 parameters:
 - name: platform
   type: select
@@ -53,9 +53,20 @@ parameters:
     en_US: Space ID
     zh_Hans: 会话 ID
   human_description:
-    en_US: Optional pho_spc_ ID. Applied locally to each upstream page; page_size limits scanned project messages, not matching messages.
-    zh_Hans: 可选的会话 ID（pho_spc_），在本地对每页 Photon 结果进行筛选；page_size 限制读取的项目消息数，并非匹配的消息数。
-  llm_description: Optional pho_spc_ ID. Applied locally to each upstream page; page_size limits scanned project messages, not matching messages.
+    en_US: Optional pho_spc_ ID, to list that space's messages. Requires perspective_user_id; Photon then rejects platform, created_since and created_before.
+    zh_Hans: 可选的会话 ID（pho_spc_），用于查看该会话的消息。需要同时传入 perspective_user_id；此时 Photon 不接受 platform、created_since 和 created_before。
+  llm_description: Optional pho_spc_ ID, to list that space's messages. Requires perspective_user_id; Photon then rejects platform, created_since and created_before.
+  form: llm
+- name: perspective_user_id
+  type: string
+  required: false
+  label:
+    en_US: Perspective user ID
+    zh_Hans: 视角用户 ID
+  human_description:
+    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there. The other participant's ID returns no messages.
+    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如在该会话发送消息所用的 sender_id。填写对方参与者的 ID 不会返回消息。
+  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there. The other participant's ID returns no messages.
   form: llm
 - name: direction
   type: select

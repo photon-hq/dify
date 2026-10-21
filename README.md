@@ -10,7 +10,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 |---|---|
 | `send_message` | Sends text (`type: text`) or JPEG, PNG, GIF, or WebP images of up to 10 MB each (`type: attachment`) into an existing space. |
 | `list_spaces` | Lists spaces, optionally for one platform or participant. |
-| `list_messages` | Lists messages by platform, direction, creation time, and space. |
+| `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. |
 | `get_message` | Returns one message with its content and delivery status. |
 | `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. |
 
@@ -49,7 +49,7 @@ Send text, or images with optional text:
 - Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later; only `delivered` sets `delivery_confirmed` to `true`.
 - Reuse the same `idempotency_key` to retry a send safely. If you omit it, the plugin generates one and returns it in the result, and in the error if the send fails.
 
-Lists return `items` and `next_page_token`. Pass the token back as `page_token`, with the same filters, until it is `null`, even after an empty page. `list_messages` filters by `space_id` within each page it fetches, so a page can contain fewer matches than `page_size`.
+Lists return `items` and `next_page_token`. Pass the token back as `page_token`, with the same filters, until it is `null`, even after an empty page. To list one space's messages, pass `space_id` with `perspective_user_id`, the project's agent user in that space; Photon then does not accept `platform`, `created_since` or `created_before`.
 
 Messages have `id`, `platform`, `space_id`, `direction` (`received` or `sent`), `type`, `text`, `attachment_ids`, `content` (the full content in Photon's structure), `parent_message_id`, `status`, `delivery_confirmed`, `timestamps` and `failure`. Every top-level field of a result is also a named output variable, except a message's `text`, which fills Dify's own `text` output when the message has text. For lists, those fields are `items` and `next_page_token`; each message's fields stay inside `items`.
 
