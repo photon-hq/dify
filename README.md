@@ -51,7 +51,7 @@ Send text, or images with optional text:
 
 Lists return `items` and `next_page_token`. Pass the token back as `page_token`, with the same filters, until it is `null`, even after an empty page. `list_messages` filters by `space_id` within each page it fetches, so a page can contain fewer matches than `page_size`.
 
-Messages have `id`, `platform`, `space_id`, `direction` (`received` or `sent`), `type`, `text`, `attachment_ids`, `content`, `parent_message_id`, `status`, `delivery_confirmed`, `timestamps` and `failure`. Each top-level field is also a named output variable, except `text`, which Dify reserves; it stays in the JSON output.
+Messages have `id`, `platform`, `space_id`, `direction` (`received` or `sent`), `type`, `text`, `attachment_ids`, `content` (the full content in Photon's structure), `parent_message_id`, `status`, `delivery_confirmed`, `timestamps` and `failure`. Each top-level field is also a named output variable, except `text`, which Dify reserves; it stays in the JSON output.
 
 `get_attachment` returns the file as a Dify file output, for example for a vision model. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
 

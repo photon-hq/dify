@@ -318,9 +318,7 @@ class ToolTests(unittest.TestCase):
             (result["type"], result["text"], result["attachment_ids"]),
             ("group", "Two photos", [ATTACHMENT, OTHER_ATTACHMENT]),
         )
-        self.assertEqual(
-            result["content"]["parts"][1], {"type": "attachment", "attachment_id": ATTACHMENT}
-        )
+        self.assertEqual(result["content"], group)
 
     def test_send_rejects_invalid_combinations_and_files_before_any_request(self):
         self.download_bodies["https://dify.example/files/large.png"] = b"0" * (MAX_IMAGE_BYTES + 1)
@@ -523,10 +521,15 @@ class ToolTests(unittest.TestCase):
             (delivered["status"], delivered["delivery_confirmed"], delivered["failure"]),
             ("delivered", True, None),
         )
-        self.queue(message("received"))
-        self.assertEqual(
-            self.invoke("get_message", {"message_id": MESSAGE})["direction"], "received"
-        )
+        content = {
+            "type": "text",
+            "format": "plain",
+            "text": "Hi",
+            "metadata": {"crm": {"ticketId": "T-1", "SKU": "A1"}},
+        }
+        self.queue(message("received", content=content))
+        received = self.invoke("get_message", {"message_id": MESSAGE})
+        self.assertEqual((received["direction"], received["content"]), ("received", content))
 
     def test_get_attachment_returns_metadata_and_the_file(self):
         self.queue(attachment())

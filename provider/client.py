@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import re
 from collections.abc import Generator
 from typing import Any
 
@@ -84,17 +83,6 @@ def tool_messages(tool: Tool, result: dict[str, Any]) -> Generator[ToolInvokeMes
             yield tool.create_variable_message(name, value)
 
 
-def snake_case(value: Any) -> Any:
-    if isinstance(value, list):
-        return [snake_case(item) for item in value]
-    if isinstance(value, dict):
-        return {
-            re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower(): snake_case(item)
-            for key, item in value.items()
-        }
-    return value
-
-
 def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
     content = data["content"]
     parts = content.get("parts", []) if content["type"] == "group" else [content]
@@ -112,7 +100,7 @@ def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
         "attachment_ids": [
             part["attachmentId"] for part in parts if part.get("type") in ("attachment", "voice")
         ],
-        "content": snake_case(content),
+        "content": content,
         "parent_message_id": data.get("parentMessageId"),
         "status": status,
         "delivery_confirmed": status == "delivered",
