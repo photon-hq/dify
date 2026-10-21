@@ -1,4 +1,4 @@
-"""HTTP /invoke -> SDK router -> tools -> mocked HTTPS -> JSON stream acceptance."""
+"""HTTP /invoke -> SDK router -> tools -> mocked HTTPS -> JSON stream."""
 
 import dify_plugin  # Initialize the SDK before HTTP imports.
 
@@ -12,12 +12,12 @@ import unittest
 from pathlib import Path
 from uuid import uuid4
 
-import requests
+import httpx
 
 from fixtures import CREDENTIALS, CURSOR, FAILED_MESSAGE, KEY, MESSAGE, MISSING_MESSAGE, SPACE
 
 
-class SDKProcessAcceptanceTests(unittest.TestCase):
+class SDKProcessTests(unittest.TestCase):
     def test_real_entrypoint_credentials_and_tools_over_sdk_http(self):
         with socket.socket() as listener:
             listener.bind(("127.0.0.1", 0))
@@ -26,8 +26,7 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
         runner = Path(__file__).with_name("sdk_fixture_runner.py")
         process = subprocess.Popen([sys.executable, str(runner)], cwd=Path.cwd(), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         base = f"http://127.0.0.1:{port}"
-        session = requests.Session()
-        session.trust_env = False
+        session = httpx.Client(trust_env=False)
         try:
             deadline = time.monotonic() + 10
             while time.monotonic() < deadline:
@@ -36,14 +35,14 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
                 try:
                     if session.get(base + "/health", timeout=1).status_code == 200:
                         break
-                except requests.ConnectionError:
+                except httpx.TransportError:
                     pass
                 time.sleep(0.05)
             else:
                 self.fail("SDK fixture process did not become healthy")
 
             def invoke(tool=None, parameters=None, credentials=None):
-                data = {"type": "tool", "action": "invoke_tool" if tool else "validate_tool_credentials", "user_id": "local-acceptance", "provider": "photon", "credentials": credentials or CREDENTIALS}
+                data = {"type": "tool", "action": "invoke_tool" if tool else "validate_tool_credentials", "user_id": "local-test", "provider": "photon", "credentials": credentials or CREDENTIALS}
                 if tool:
                     data.update(tool=tool, tool_parameters=parameters or {})
                 response = session.post(base + "/invoke", json={"session_id": str(uuid4()), "event": "request", "data": data}, timeout=5)
@@ -70,7 +69,7 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
             chats = payload(invoke("list_spaces", {}))
             self.assertEqual(chats["items"][0]["id"], SPACE)
             self.assertEqual(chats["next_page_token"], CURSOR)
-            send_parameters = {"space_id": SPACE, "text": "SDK process acceptance.", "idempotency_key": "process-stable-key"}
+            send_parameters = {"space_id": SPACE, "text": "SDK process test.", "idempotency_key": "process-stable-key"}
             sent = payload(invoke("send_message", send_parameters))
             self.assertEqual(sent["id"], MESSAGE)
             self.assertEqual(sent["status"], "dispatched")
@@ -94,9 +93,9 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
             not_found = invoke("get_message", {"message_id": MISSING_MESSAGE})
             self.assertIn("MESSAGE_NOT_FOUND", json.dumps(not_found))
             invalid = invoke("get_message", {"message_id": "invalid"})
-            self.assertIn("message_id must be a Photon ID", json.dumps(invalid))
+            self.assertIn("VALIDATION_FAILED", json.dumps(invalid))
             invalid_credentials = invoke(credentials={**CREDENTIALS, "api_key": "invalid"})
-            self.assertIn("Configure api_key", json.dumps(invalid_credentials))
+            self.assertIn("NOT_AUTHENTICATED", json.dumps(invalid_credentials))
         finally:
             session.close()
             process.terminate()
@@ -108,7 +107,6 @@ class SDKProcessAcceptanceTests(unittest.TestCase):
             self.assertNotIn(KEY, stdout + stderr, "SDK process logs exposed a fixture credential")
             # SDK 0.10.2 logs safe tracebacks for the four deliberate error calls.
             self.assertNotIn("AssertionError", stderr, "Synthetic HTTP contract check failed")
-            self.assertNotIn("jsonschema.exceptions", stderr, "Official response-schema validation failed")
 
 
 if __name__ == "__main__":

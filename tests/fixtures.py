@@ -19,10 +19,8 @@ OTHER_ATTACHMENT = "pho_att_00000000000000000000000002"
 KEY = "pho_" + "sk_" + "synthetic_fixture_only"
 NOW = "2026-10-19T00:00:00.000Z"
 CURSOR = "fixture.signature"
-CREDENTIALS = {"api_key": KEY, "project_id": PROJECT, "default_sender_id": SENDER}
+CREDENTIALS = {"api_origin": "https://api.photon.codes", "api_key": KEY, "project_id": PROJECT, "default_sender_id": SENDER}
 
-
-# Agent handles and user details that each platform's official snapshot schema accepts.
 HANDLES = {"email": "agent@example.com", "telegram": "123456789"}
 
 

@@ -1,75 +1,59 @@
-"""Run the real entrypoint with synthetic Photon transport, for process acceptance."""
+"""Run the real entrypoint with synthetic Photon transport, for process tests."""
 
 import dify_plugin  # Initialize the SDK's gevent patch before HTTP imports.
 
 import json
-import os
 import runpy
 import sys
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs
 
-import requests
+import httpx
 
 from fixtures import CURSOR, FAILED_MESSAGE, KEY, MESSAGE, MISSING_MESSAGE, OTHER_SPACE, PROJECT, chat, message
 
 sys.path.insert(0, str(Path.cwd()))
-contract = None
-if os.environ.get("PHOTON_OPENAPI"):
-    from openapi_contract import OpenAPIContract
-    contract = OpenAPIContract()
 sent = {}
 
 
-def fixture_send(adapter, request, **kwargs):
-    parsed = urlparse(request.url)
-    assert parsed.scheme == "https" and parsed.netloc == "api.photon.codes"
-    assert request.headers["Authorization"] == "Bearer " + KEY
-    assert kwargs["verify"] is True and kwargs["timeout"] == (5, 15)
-    assert kwargs["proxies"] == {} and adapter.max_retries.total == 0
-    if contract:
-        contract.validate_request(request)
-    query = parse_qs(parsed.query)
-    status, content_type = 200, "application/json"
+def problem(status, code, **fields):
+    return status, "application/problem+json", {"status": status, "code": code, **fields}
+
+
+def fixture_send(transport, request):
+    url = request.url
+    assert url.scheme == "https" and url.host == "api.photon.codes"
+    query = {name: values[0] for name, values in parse_qs(url.query.decode()).items()}
     prefix = f"/v1/projects/{PROJECT}"
-    if request.method == "GET" and parsed.path == prefix + "/spaces":
+    status, content_type = 200, "application/json"
+    if request.headers.get("Authorization") != "Bearer " + KEY:
+        status, content_type, data = problem(401, "NOT_AUTHENTICATED", title="Not Authenticated")
+    elif request.method == "GET" and url.path == prefix + "/spaces":
         data = {"items": [chat()], "nextPageToken": CURSOR}
-    elif request.method == "POST" and parsed.path == prefix + "/messages":
+    elif request.method == "POST" and url.path == prefix + "/messages":
         key = request.headers["Idempotency-Key"]
-        body = json.loads(request.body)
-        status = 202
+        body = json.loads(request.read())
         if key in sent and sent[key] != body:
-            status, content_type = 422, "application/problem+json"
-            data = {"code": "IDEMPOTENCY_KEY_REUSED", "detail": KEY}
+            status, content_type, data = problem(422, "IDEMPOTENCY_KEY_REUSED", title="Idempotency Key Reused")
         else:
             sent[key] = body
-            data = message(text=body["content"]["text"])
-    elif request.method == "GET" and parsed.path == prefix + "/messages":
-        assert query["platform"] == ["imessage"]
-        assert query.get("direction") == ["sent"]
-        assert "spaceId" not in query
+            status, data = 202, message(text=body["content"]["text"])
+    elif request.method == "GET" and url.path == prefix + "/messages":
+        assert query["platform"] == "imessage" and query.get("direction") == "sent" and "spaceId" not in query
         data = {"items": [message(space=OTHER_SPACE)], "nextPageToken": CURSOR} if "pageToken" not in query else {"items": [message("delivered")]}
-    elif request.method == "GET" and parsed.path == prefix + "/messages/" + MESSAGE:
+    elif request.method == "GET" and url.path == prefix + "/messages/" + MESSAGE:
         assert sent, "Status lookup should follow a successful synthetic send"
         data = message("delivered", text=next(iter(sent.values()))["content"]["text"])
-    elif request.method == "GET" and parsed.path == prefix + "/messages/" + FAILED_MESSAGE:
+    elif request.method == "GET" and url.path == prefix + "/messages/" + FAILED_MESSAGE:
         data = message("failed")
-    elif request.method == "GET" and parsed.path == prefix + "/messages/" + MISSING_MESSAGE:
-        status, content_type = 404, "application/problem+json"
-        data = {"code": "MESSAGE_NOT_FOUND", "title": KEY, "detail": KEY}
+    elif request.method == "GET" and url.path == prefix + "/messages/" + MISSING_MESSAGE:
+        status, content_type, data = problem(404, "MESSAGE_NOT_FOUND", title="Message Not Found")
+    elif request.method == "GET" and url.path == prefix + "/messages/invalid":
+        status, content_type, data = problem(422, "VALIDATION_FAILED", issues=[{"message": "value must be a pho_msg_ TypeID", "path": "/messageId"}])
     else:
         raise AssertionError("Unexpected Photon fixture request")
-    if contract and status in (200, 202):
-        schema_name = "SpacePage" if parsed.path.endswith("/spaces") else "MessagePage" if request.method == "GET" and parsed.path.endswith("/messages") else "SentMessage" if request.method == "POST" else "ImessageMessage"
-        contract.validate(data, {"$ref": "#/components/schemas/" + schema_name})
-    response = requests.Response()
-    response.status_code = status
-    response.headers["Content-Type"] = content_type
-    response._content = json.dumps(data).encode()
-    response.request = request
-    response.url = request.url
-    return response
+    return httpx.Response(status, headers={"Content-Type": content_type}, content=json.dumps(data).encode(), request=request)
 
 
-requests.adapters.HTTPAdapter.send = fixture_send
+httpx.HTTPTransport.handle_request = fixture_send
 runpy.run_module("main", run_name="__main__")

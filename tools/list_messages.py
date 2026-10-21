@@ -4,26 +4,21 @@ from typing import Any
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from provider.client import PhotonClient, PhotonError, normalize_message, page_items, pagination, photon_id, platform_filter, sort_order, time_bounds
+from provider.client import PhotonClient, normalize_message, query_params
 
 
 class ListMessagesTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         client = PhotonClient(self.runtime.credentials)
-        query = pagination(tool_parameters, 200)
-        query.update(platform_filter(tool_parameters.get("platform")))
-        query.update(time_bounds(tool_parameters))
-        query["order"] = sort_order(tool_parameters.get("order"))
-        space = photon_id(tool_parameters.get("space_id"), "space_id", "pho_spc_", required=False)
-        direction = tool_parameters.get("direction")
-        if direction is not None and direction != "":
-            if direction not in ("received", "sent"):
-                raise PhotonError("direction must be received or sent.")
-            query["direction"] = direction
+        query = {"pageSize": 20, "order": "desc", **query_params(tool_parameters, {
+            "platform": "platform", "direction": "direction", "order": "order", "created_since": "createdSince",
+            "created_before": "createdBefore", "page_size": "pageSize", "page_token": "pageToken",
+        })}
+        space = tool_parameters.get("space_id") or None
         # API spaceId needs resourceId or perspectiveUserId; perspectives forbid
         # platform/time filters. Filter this bounded project page locally instead.
-        data = client.request("GET", "/messages", params=query)
-        scanned = page_items(data)
+        data = client.call("list_messages", query=query)
+        scanned = data["items"]
         items = [normalize_message(item) for item in scanned]
         if space is not None:
             items = [item for item in items if item["space_id"] == space]

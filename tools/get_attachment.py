@@ -4,15 +4,17 @@ from typing import Any
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from provider.client import PhotonClient, normalize_attachment, photon_id
+from provider.client import MAX_ATTACHMENT_BYTES, PhotonClient, PhotonError, normalize_attachment
 
 
 class GetAttachmentTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         client = PhotonClient(self.runtime.credentials)
-        attachment = photon_id(tool_parameters.get("attachment_id"), "attachment_id", "pho_att_")
-        result = normalize_attachment(client.request("GET", f"/attachments/{attachment}"))
-        data = client.request("GET", f"/attachments/{attachment}/content", binary=True)
+        path = {"attachmentId": tool_parameters.get("attachment_id")}
+        result = normalize_attachment(client.call("get_attachment", path=path))
+        if result["size_bytes"] > MAX_ATTACHMENT_BYTES:
+            raise PhotonError("The attachment is larger than 50 MB, Dify's default limit for files returned by plugins.")
+        data = client.call("download_attachment", path=path)
         yield self.create_json_message(result)
         for key, value in result.items():
             if key not in {"text", "files", "json"}:
