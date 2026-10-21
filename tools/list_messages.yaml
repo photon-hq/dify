@@ -64,9 +64,9 @@ parameters:
     en_US: Perspective user ID
     zh_Hans: 视角用户 ID
   human_description:
-    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there. The other participant's ID returns no messages.
-    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如在该会话发送消息所用的 sender_id。填写对方参与者的 ID 不会返回消息。
-  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there. The other participant's ID returns no messages.
+    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there; Photon lists the messages it sent and received.
+    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如在该会话发送消息所用的 sender_id；Photon 会列出这个用户发送和接收的消息。
+  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there; Photon lists the messages it sent and received.
   form: llm
 - name: direction
   type: select
