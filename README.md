@@ -89,7 +89,9 @@ See [PRIVACY.md](PRIVACY.md).
 Source: [photon-hq/dify](https://github.com/photon-hq/dify). With Python 3.12:
 
 ```sh
-pip install -r requirements.txt
+pip install -r requirements.txt ruff==0.15.0
+ruff check .
+ruff format --check .
 python -m unittest discover -s tests
 ```
 
