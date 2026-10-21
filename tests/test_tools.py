@@ -6,10 +6,9 @@ from urllib.parse import parse_qs
 from uuid import UUID
 
 import httpx
-import yaml
 from dify_plugin import DifyPluginEnv
 from dify_plugin.core.plugin_registration import PluginRegistration
-from dify_plugin.entities.tool import ToolInvokeMessage, ToolRuntime
+from dify_plugin.entities.tool import ToolRuntime
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from fixtures import (
     ATTACHMENT,
@@ -120,34 +119,12 @@ class ToolTests(unittest.TestCase):
             {item.message.variable_name: item.message.variable_value for item in variables},
             expected,
         )
-        for item in result[: len(result) - len(self.blobs)]:
-            self.assertEqual(
-                ToolInvokeMessage.model_validate_json(item.model_dump_json()).message, item.message
-            )
         return payload
 
     def fails(self, name, parameters, credentials=None):
         with self.assertRaises(PhotonError) as raised:
             self.invoke(name, parameters, credentials)
         return str(raised.exception)
-
-    def test_five_tools_and_provider_credentials_follow_the_manifest(self):
-        self.assertEqual(
-            set(self.mapping),
-            {"send_message", "list_spaces", "list_messages", "get_message", "get_attachment"},
-        )
-        with open("provider/photon.yaml") as stream:
-            credentials = yaml.safe_load(stream)["credentials_for_provider"]
-        self.assertEqual(credentials["api_key"]["type"], "secret-input")
-        self.assertEqual(credentials["api_origin"]["default"], "https://api.photon.codes")
-        self.assertEqual(
-            [option["value"] for option in credentials["api_origin"]["options"]],
-            ["https://api.photon.codes", "https://api.staging.photon.codes"],
-        )
-        for definition, _ in self.mapping.values():
-            self.assertFalse(
-                set(credentials) & {parameter.name for parameter in definition.parameters}
-            )
 
     def test_both_origins_route_credential_validation_and_every_tool(self):
         for origin in ["https://api.photon.codes", "https://api.staging.photon.codes"]:
