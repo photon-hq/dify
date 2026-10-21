@@ -18,7 +18,6 @@ class ListMessagesTool(Tool):
         client = PhotonClient(self.runtime.credentials)
         query = {
             "pageSize": DEFAULT_PAGE_SIZE,
-            "order": "desc",
             **query_params(
                 tool_parameters,
                 {

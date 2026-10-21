@@ -32,7 +32,7 @@ from fixtures import (
     message,
 )
 
-from provider.client import MAX_ATTACHMENT_BYTES, MAX_IMAGE_BYTES, PhotonClient, PhotonError
+from provider.client import MAX_ATTACHMENT_BYTES, MAX_IMAGE_BYTES, PhotonError
 from provider.photon import PhotonProvider
 
 
@@ -148,17 +148,6 @@ class ToolTests(unittest.TestCase):
             self.assertFalse(
                 set(credentials) & {parameter.name for parameter in definition.parameters}
             )
-
-    def test_only_the_two_photon_origins_are_accepted(self):
-        for origin in [
-            "https://example.com",
-            "https://api.photon.codes/",
-            "http://api.photon.codes",
-            None,
-        ]:
-            with self.subTest(origin=origin), self.assertRaises(PhotonError):
-                PhotonClient({**CREDENTIALS, "api_origin": origin})
-        self.assertEqual(self.calls, [])
 
     def test_both_origins_route_credential_validation_and_every_tool(self):
         for origin in ["https://api.photon.codes", "https://api.staging.photon.codes"]:
@@ -464,7 +453,7 @@ class ToolTests(unittest.TestCase):
             self.invoke("list_spaces", {"platform": "", "page_size": None}),
             {"items": [], "next_page_token": None},
         )
-        self.assertEqual(self.query(), {"pageSize": "20", "order": "desc"})
+        self.assertEqual(self.query(), {"pageSize": "20"})
 
     def test_list_messages_passes_filters_and_filters_one_space_locally(self):
         self.queue(

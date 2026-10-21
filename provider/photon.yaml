@@ -20,8 +20,8 @@ credentials_for_provider:
       en_US: Photon environment
       zh_Hans: Photon 环境
     help:
-      en_US: Select Production or Staging to match your API key and project. Only these exact HTTPS origins are allowed; arbitrary URLs and trailing paths are rejected. Production is the default.
-      zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。仅允许这两个指定的 HTTPS 源地址，不接受任意网址或附加路径。默认使用生产环境。
+      en_US: Select Production or Staging to match your API key and project. Production is the default.
+      zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。默认使用生产环境。
     options:
     - value: https://api.photon.codes
       label:

@@ -121,13 +121,9 @@ output_schema:
             items:
               type: string
           created_at:
-            type:
-            - string
-            - 'null'
+            type: string
           updated_at:
-            type:
-            - string
-            - 'null'
+            type: string
         required:
         - id
         - platform

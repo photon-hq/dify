@@ -65,13 +65,9 @@ output_schema:
       type: object
       properties:
         created_at:
-          type:
-          - string
-          - 'null'
+          type: string
         updated_at:
-          type:
-          - string
-          - 'null'
+          type: string
         received_at:
           type:
           - string
@@ -107,13 +103,9 @@ output_schema:
       - 'null'
       properties:
         code:
-          type:
-          - string
-          - 'null'
+          type: string
         message:
-          type:
-          - string
-          - 'null'
+          type: string
         confirmed_recipient_count:
           type:
           - integer

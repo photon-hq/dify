@@ -33,13 +33,9 @@ output_schema:
     content_type:
       type: string
     size_bytes:
-      type:
-      - integer
-      - 'null'
+      type: integer
     created_at:
-      type:
-      - string
-      - 'null'
+      type: string
   required:
   - id
   - filename

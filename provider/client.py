@@ -20,7 +20,6 @@ from photon_api.rpc_generated import (
 )
 from pydantic import ValidationError
 
-ALLOWED_ORIGINS = ("https://api.photon.codes", "https://api.staging.photon.codes")
 SEND_TYPES = ("text", "attachment")
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -85,8 +84,8 @@ def tool_messages(tool: Tool, result: dict[str, Any]) -> Generator[ToolInvokeMes
 
 def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
     content = data["content"]
-    parts = content.get("parts", []) if content["type"] == "group" else [content]
-    texts = [part["text"] for part in parts if part.get("type") == "text"]
+    parts = content["parts"] if content["type"] == "group" else [content]
+    texts = [part["text"] for part in parts if part["type"] == "text"]
     milestones = data["timestamps"]
     failure = data.get("failure")
     status = data["status"]
@@ -98,15 +97,15 @@ def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
         "type": content["type"],
         "text": "\n".join(texts) if texts else None,
         "attachment_ids": [
-            part["attachmentId"] for part in parts if part.get("type") in ("attachment", "voice")
+            part["attachmentId"] for part in parts if part["type"] in ("attachment", "voice")
         ],
         "content": content,
         "parent_message_id": data.get("parentMessageId"),
         "status": status,
         "delivery_confirmed": status == "delivered",
         "timestamps": {
-            "created_at": data.get("createdAt"),
-            "updated_at": data.get("updatedAt"),
+            "created_at": data["createdAt"],
+            "updated_at": data["updatedAt"],
             **{
                 public: milestones.get(api)
                 for public, api in [
@@ -119,8 +118,8 @@ def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
             },
         },
         "failure": {
-            "code": failure.get("code"),
-            "message": failure.get("message"),
+            "code": failure["code"],
+            "message": failure["message"],
             "confirmed_recipient_count": failure.get("confirmedRecipientCount"),
         }
         if failure
@@ -131,11 +130,11 @@ def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
 def normalize_space(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": data["id"],
-        "platform": data.get("platform"),
-        "kind": data.get("kind"),
+        "platform": data["platform"],
+        "kind": data["kind"],
         "participant_ids": data["participantIds"],
-        "created_at": data.get("createdAt"),
-        "updated_at": data.get("updatedAt"),
+        "created_at": data["createdAt"],
+        "updated_at": data["updatedAt"],
     }
 
 
@@ -145,23 +144,17 @@ def normalize_attachment(data: dict[str, Any]) -> dict[str, Any]:
         "filename": data.get("filename"),
         "content_type": data["contentType"],
         "size_bytes": data["sizeBytes"],
-        "created_at": data.get("createdAt"),
+        "created_at": data["createdAt"],
     }
 
 
 class PhotonClient:
     def __init__(self, credentials: dict[str, Any]):
-        origin = credentials.get("api_origin")
-        if origin not in ALLOWED_ORIGINS:
-            raise PhotonError(
-                "api_origin must be https://api.photon.codes (production) "
-                "or https://api.staging.photon.codes (staging)."
-            )
-        self.origin = origin
-        self.project_id = credentials.get("project_id")
+        self.origin = credentials["api_origin"]
+        self.project_id = credentials["project_id"]
         self.default_sender_id = credentials.get("default_sender_id") or None
         self.api = Photon(
-            base_url=origin, headers={"Authorization": f"Bearer {credentials.get('api_key')}"}
+            base_url=self.origin, headers={"Authorization": f"Bearer {credentials['api_key']}"}
         )
 
     def call(
