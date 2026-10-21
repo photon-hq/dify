@@ -7,7 +7,6 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 from provider.client import (
     DEFAULT_PAGE_SIZE,
     PhotonClient,
-    normalize_message,
     query_params,
     tool_messages,
 )
@@ -33,9 +32,4 @@ class ListMessagesTool(Tool):
                 },
             ),
         }
-        data = client.call("list_messages", query=query)
-        result = {
-            "items": [normalize_message(item) for item in data["items"]],
-            "next_page_token": data.get("nextPageToken"),
-        }
-        yield from tool_messages(self, result)
+        yield from tool_messages(self, client.call("list_messages", query=query))

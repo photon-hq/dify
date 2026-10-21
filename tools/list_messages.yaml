@@ -6,9 +6,9 @@ identity:
     zh_Hans: 查看消息
 description:
   human:
-    en_US: List one page of messages across all channels or one platform, or one space's messages with space_id and perspective_user_id. Continue with next_page_token until null, including after empty pages.
-    zh_Hans: 分页查看所有渠道或单个渠道的消息，或用 space_id 加 perspective_user_id 查看单个会话的消息。即使当前页为空，也应使用 next_page_token 继续查询，直到该值为 null。
-  llm: List one page of messages across all channels or one platform, or one space's messages with space_id and perspective_user_id. Continue with next_page_token until null, including after empty pages.
+    en_US: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
+    zh_Hans: 分页查看所有渠道或单个渠道的消息（默认从新到旧），或用 space_id 加 perspective_user_id 查看单个会话的消息。每条消息都包含所属会话、发送者（sentBy），以及 Photon 记录到的接收者（receivedBy）；收到的消息里，receivedBy 就是项目的代理用户。
+  llm: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
 parameters:
 - name: platform
   type: select
@@ -64,9 +64,9 @@ parameters:
     en_US: Perspective user ID
     zh_Hans: 视角用户 ID
   human_description:
-    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there; Photon lists the messages it sent and received.
-    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如在该会话发送消息所用的 sender_id；Photon 会列出这个用户发送和接收的消息。
-  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the sender_id that sends there; Photon lists the messages it sent and received.
+    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
+    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id；Photon 会列出这个用户发送和接收的消息。
+  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
   form: llm
 - name: direction
   type: select
@@ -129,9 +129,9 @@ parameters:
     en_US: Page token
     zh_Hans: 分页令牌
   human_description:
-    en_US: Unchanged next_page_token from the previous result. Keep all filters unchanged, even after an empty page.
-    zh_Hans: 原样传入上一次结果中的 next_page_token。即使上一页为空，也应保持所有筛选条件不变。
-  llm_description: Unchanged next_page_token from the previous result. Keep all filters unchanged, even after an empty page.
+    en_US: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
+    zh_Hans: 上一次结果中的 nextPageToken，用于获取下一页，其他参数保持不变。只在需要更多结果时传入。
+  llm_description: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
   form: llm
 - name: created_since
   type: string
@@ -167,116 +167,87 @@ output_schema:
             type: string
           platform:
             type: string
-          space_id:
-            type: string
-          direction:
-            type: string
-            enum:
-            - received
-            - sent
-          type:
-            type: string
-          text:
-            type:
-            - string
-            - 'null'
-          attachment_ids:
-            type: array
-            items:
-              type: string
+          space:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              participantIds:
+                type: array
+                items:
+                  type: string
+          sentBy:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              handle:
+                type: string
+          receivedBy:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              handle:
+                type: string
           content:
             type: object
-          parent_message_id:
-            type:
-            - string
-            - 'null'
+            properties:
+              type:
+                type: string
+              text:
+                type: string
+              attachmentId:
+                type: string
+              parts:
+                type: array
+                items:
+                  type: object
+          parentMessageId:
+            type: string
           status:
             type: string
-            enum:
-            - received
-            - dispatched
-            - accepted
-            - delivered
-            - failed
-          delivery_confirmed:
-            type: boolean
           timestamps:
             type: object
             properties:
-              created_at:
+              receivedAt:
                 type: string
-              updated_at:
+              dispatchedAt:
                 type: string
-              received_at:
-                type:
-                - string
-                - 'null'
-              dispatched_at:
-                type:
-                - string
-                - 'null'
-              accepted_at:
-                type:
-                - string
-                - 'null'
-              delivered_at:
-                type:
-                - string
-                - 'null'
-              failed_at:
-                type:
-                - string
-                - 'null'
-            required:
-            - created_at
-            - updated_at
-            - received_at
-            - dispatched_at
-            - accepted_at
-            - delivered_at
-            - failed_at
-            additionalProperties: false
-          failure:
-            type:
-            - object
-            - 'null'
+              acceptedAt:
+                type: string
+              deliveredAt:
+                type: string
+              failedAt:
+                type: string
+          acceptance:
+            type: object
             properties:
               code:
                 type: string
               message:
                 type: string
-              confirmed_recipient_count:
-                type:
-                - integer
-                - 'null'
-            required:
-            - code
-            - message
-            - confirmed_recipient_count
-            additionalProperties: false
-        required:
-        - id
-        - platform
-        - space_id
-        - direction
-        - type
-        - text
-        - attachment_ids
-        - content
-        - parent_message_id
-        - status
-        - delivery_confirmed
-        - timestamps
-        - failure
-        additionalProperties: false
-    next_page_token:
-      type:
-      - string
-      - 'null'
-  required:
-  - items
-  - next_page_token
-  additionalProperties: false
+          failure:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+          metadata:
+            type: object
+          createdAt:
+            type: string
+          updatedAt:
+            type: string
+    nextPageToken:
+      type: string
 extra:
   python:
     source: tools/list_messages.py

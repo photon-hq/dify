@@ -11,13 +11,14 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 | `send_message` | 向现有会话发送文字（`type: text`），或每张不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（`type: attachment`）。 |
 | `list_spaces` | 查看会话，可按渠道或参与者筛选。 |
 | `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 |
-| `get_message` | 获取一条消息及其内容和投递状态。 |
+| `get_message` | 获取一条消息及其发送者、内容和投递状态。 |
+| `get_user` | 获取一个用户的联系方式，以及它是项目的代理用户还是普通联系人。 |
 | `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 |
 
 ## 配置
 
 1. 在 Photon 项目中连接要使用的渠道。插件只向现有会话发送，不会连接渠道或新建会话。
-2. 创建 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）。记下每个要发送的渠道上负责发送的代理用户 ID（`pho_usr_`）；Photon 的用户只属于一个渠道。
+2. 创建 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）。
 3. 从 Dify Marketplace 安装 **Photon**，然后在 **工具 > Photon** 中授权：
 
 | 凭据 | 是否必填 | 取值 |
@@ -25,7 +26,6 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 | `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
-| `default_sender_id` | 否 | `send_message` 未传 `sender_id` 时使用的代理用户 ID。 |
 
 在自部署的 Dify 上，需要把 `INTERNAL_FILES_URL`（或 `FILES_URL`）设为插件能访问到的 Dify API 地址，否则插件无法下载要发送的图片。
 
@@ -36,6 +36,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 ```json
 {
   "space_id": "pho_spc_…",
+  "sender_id": "pho_usr_…",
   "type": "attachment",
   "attachments": ["<来自 Dify 文件变量的图片>"],
   "text": "您的订单已发货。",
@@ -44,16 +45,17 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 ```
 
 - 多张图片，或图片加文字，会作为一条 `group` 消息发送：文字在前，图片按顺序在后。每张图片会先上传到 Photon，再发送消息。
-- `sender_id`、`parent_message_id`（回复）和 `email_subject` 都是可选的。
+- `sender_id` 是该会话中项目的代理用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 判断某个参与者是不是项目的代理用户。
+- `parent_message_id`（回复）和 `email_subject` 是可选的。
 - 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。
-- 发送是异步的：结果通常是 `dispatched`。之后请调用 `get_message`，只有 `delivered` 才会把 `delivery_confirmed` 设为 `true`。
+- 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。
 
-列表工具返回 `items` 和 `next_page_token`。请把令牌作为 `page_token` 传回，并保持筛选条件不变，直到令牌为 `null`，即使某一页为空也要继续。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
+列表工具返回 Photon 的分页结果：`items`，还有更多结果时另有 `nextPageToken`。要获取下一页，把它作为 `page_token` 传入，其他筛选条件保持不变。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
 
-消息包含 `id`、`platform`、`space_id`、`direction`（`received` 或 `sent`）、`type`、`text`、`attachment_ids`、`content`（Photon 原始结构的完整内容）、`parent_message_id`、`status`、`delivery_confirmed`、`timestamps` 和 `failure`。每个结果的顶层字段都会同时作为同名输出变量，但消息的 `text` 例外：消息有文本时，它填入 Dify 自带的 `text` 输出。列表工具的顶层字段是 `items` 和 `next_page_token`，每条消息的字段都在 `items` 里。
+结果就是 API 返回的 Photon 原始对象。消息包含 `id`、`platform`、`space`、`sentBy`、Photon 记录到的 `receivedBy`、`content`、`parentMessageId`、`status`、`timestamps`，以及适用时的 `acceptance` 或 `failure`；文字消息的正文在 `content.text`。结果的每个顶层字段都会同时作为同名输出变量。
 
-`get_attachment` 以 Dify 文件输出返回附件，例如可传给视觉模型。超过 50 MB（Dify 对插件返回文件的默认上限）的文件不会下载。
+`get_attachment` 以 Dify 文件输出返回附件，供工作流使用，例如传给视觉模型；在 Agent 应用里，模型看不到这个文件。超过 50 MB（Dify 对插件返回文件的默认上限）的文件不会下载。
 
 ## 网络连接要求
 
@@ -63,7 +65,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 - 只能使用现有会话；不能新建会话，没有入站触发器或投递回调。
 - 发送支持文字和图片，读取支持所有内容类型。
-- 一个默认发送者只对应一个渠道；在其他渠道发送时请传入 `sender_id`。
+- 经典 Agent 应用不能把文件传给工具，所以只能发文字；工作流和新版 Agent 可以发图片。
 
 ## 隐私
 

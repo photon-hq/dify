@@ -13,7 +13,6 @@ from provider.client import (
     PhotonClient,
     PhotonError,
     UnknownOutcome,
-    normalize_message,
     tool_messages,
 )
 
@@ -21,12 +20,6 @@ from provider.client import (
 class SendMessageTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         client = PhotonClient(self.runtime.credentials)
-        sender = tool_parameters.get("sender_id") or client.default_sender_id
-        if not sender:
-            raise PhotonError(
-                "Provide sender_id or configure default_sender_id "
-                "with a project-owned Photon agent user ID."
-            )
         kind = tool_parameters.get("type") or "text"
         if kind not in SEND_TYPES:
             raise PhotonError(f"type must be one of {', '.join(SEND_TYPES)}.")
@@ -54,7 +47,10 @@ class SendMessageTool(Tool):
         images = [(file, file.blob) for file in files]
         if any(len(data) > MAX_IMAGE_BYTES for _, data in images):
             raise PhotonError("Each image in attachments must be at most 10 MB.")
-        body: dict[str, Any] = {"spaceId": tool_parameters.get("space_id"), "senderId": sender}
+        body: dict[str, Any] = {
+            "spaceId": tool_parameters.get("space_id"),
+            "senderId": tool_parameters.get("sender_id"),
+        }
         if tool_parameters.get("parent_message_id"):
             body["parentMessageId"] = tool_parameters["parent_message_id"]
         if tool_parameters.get("email_subject"):
@@ -68,9 +64,7 @@ class SendMessageTool(Tool):
                 )
                 parts.append({"type": "attachment", "attachmentId": attachment["id"]})
             body["content"] = parts[0] if len(parts) == 1 else {"type": "group", "parts": parts}
-            result = normalize_message(
-                client.call("send_message", headers={"idempotency-key": key}, body=body)
-            )
+            result = client.call("send_message", headers={"idempotency-key": key}, body=body)
         except PhotonError as error:
             reason = str(error)
             if isinstance(error, UnknownOutcome):

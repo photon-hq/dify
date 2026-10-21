@@ -5,8 +5,8 @@ identity:
     en_US: Photon
     zh_Hans: Photon
   description:
-    en_US: Send text and images, list spaces and messages, read attachments, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
-    zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发送文字和图片、查看会话与消息、读取附件，并查询异步投递状态。
+    en_US: Send text and images, list spaces and messages, read attachments and users, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
+    zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发送文字和图片、查看会话与消息、读取附件和用户，并查询异步投递状态。
   icon: icon.svg
   tags:
   - social
@@ -57,24 +57,12 @@ credentials_for_provider:
       en_US: Photon project ID
       zh_Hans: Photon 项目 ID
     url: https://photon.codes
-  default_sender_id:
-    type: text-input
-    required: false
-    label:
-      en_US: Default sender ID
-      zh_Hans: 默认发送者 ID
-    help:
-      en_US: Optional project-owned agent user ID starting with pho_usr_. Used when send_message omits sender_id. Photon users belong to one channel, so pass sender_id when sending on another channel.
-      zh_Hans: 可选的项目所属代理用户 ID，须以 pho_usr_ 开头。send_message 未指定 sender_id 时使用此值。Photon 的用户只属于一个渠道，在其他渠道发送时请传入 sender_id。
-    placeholder:
-      en_US: Default sender ID
-      zh_Hans: 默认发送者 ID
-    url: https://photon.codes
 tools:
 - tools/send_message.yaml
 - tools/list_spaces.yaml
 - tools/list_messages.yaml
 - tools/get_message.yaml
+- tools/get_user.yaml
 - tools/get_attachment.yaml
 extra:
   python:

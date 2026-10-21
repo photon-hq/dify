@@ -11,13 +11,14 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 | `send_message` | Sends text (`type: text`) or JPEG, PNG, GIF, or WebP images of up to 10 MB each (`type: attachment`) into an existing space. |
 | `list_spaces` | Lists spaces, optionally for one platform or participant. |
 | `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. |
-| `get_message` | Returns one message with its content and delivery status. |
+| `get_message` | Returns one message with its sender, content, and delivery status. |
+| `get_user` | Returns one user's handle, and whether it is the project's agent or a person. |
 | `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. |
 
 ## Setup
 
 1. In your Photon project, connect the channels you will use. The plugin sends into existing spaces; it does not connect channels or create conversations.
-2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`), and copy the project ID (`pho_prj_`). For each channel you send on, note the agent user ID (`pho_usr_`) that sends there; Photon users belong to one channel.
+2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`), and copy the project ID (`pho_prj_`).
 3. Install **Photon** from the Dify Marketplace, then authorize it under **Tools > Photon**:
 
 | Credential | Required | Value |
@@ -25,7 +26,6 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 | `api_origin` | Yes | Production (`https://api.photon.codes`, the default) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
-| `default_sender_id` | No | The agent user ID to send from when `send_message` has no `sender_id`. |
 
 On self-hosted Dify, set `INTERNAL_FILES_URL` (or `FILES_URL`) to a Dify API address the plugin can reach; otherwise the plugin cannot download the images it is asked to send.
 
@@ -36,6 +36,7 @@ Send text, or images with optional text:
 ```json
 {
   "space_id": "pho_spc_…",
+  "sender_id": "pho_usr_…",
   "type": "attachment",
   "attachments": ["<image files from a Dify file variable>"],
   "text": "Your order has shipped.",
@@ -44,16 +45,17 @@ Send text, or images with optional text:
 ```
 
 - Several images, or images with text, are sent as one `group` message: the text first, then the images in order. Each image is uploaded to Photon before the message.
-- `sender_id`, `parent_message_id` (reply) and `email_subject` are optional.
+- `sender_id` is the project's agent user in the space: the `receivedBy.id` of a message received in it, or the `sentBy.id` of one sent from it. `get_user` shows whether a participant is the project's agent.
+- `parent_message_id` (reply) and `email_subject` are optional.
 - Photon decides what each channel accepts. When it rejects a send, the error keeps Photon's status, code and reason, for example `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`.
-- Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later; only `delivered` sets `delivery_confirmed` to `true`.
+- Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later: `delivered` confirms delivery, `accepted` means the channel took the message without confirming delivery (`acceptance.code` says why), and `failed` carries `failure`.
 - Reuse the same `idempotency_key` to retry a send safely. If you omit it, the plugin generates one and returns it in the result, and in the error if the send fails.
 
-Lists return `items` and `next_page_token`. Pass the token back as `page_token`, with the same filters, until it is `null`, even after an empty page. To list one space's messages, pass `space_id` with `perspective_user_id`, the project's agent user in that space; Photon then does not accept `platform`, `created_since` or `created_before`.
+Lists return Photon's page: `items`, and `nextPageToken` when there are more. To get the next page, pass it as `page_token` with the same filters. To list one space's messages, pass `space_id` with `perspective_user_id`, the project's agent user in that space; Photon then does not accept `platform`, `created_since` or `created_before`.
 
-Messages have `id`, `platform`, `space_id`, `direction` (`received` or `sent`), `type`, `text`, `attachment_ids`, `content` (the full content in Photon's structure), `parent_message_id`, `status`, `delivery_confirmed`, `timestamps` and `failure`. Every top-level field of a result is also a named output variable, except a message's `text`, which fills Dify's own `text` output when the message has text. For lists, those fields are `items` and `next_page_token`; each message's fields stay inside `items`.
+Results are Photon's objects as the API returns them. A message has `id`, `platform`, `space`, `sentBy`, `receivedBy` when Photon records it, `content`, `parentMessageId`, `status`, `timestamps`, and `acceptance` or `failure` when they apply; a text message's text is `content.text`. Each top-level field of a result is also a named output variable.
 
-`get_attachment` returns the file as a Dify file output, for example for a vision model. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
+`get_attachment` returns the file as a Dify file output for workflows, for example for a vision model; in Agent apps the model cannot see the file. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
 
 ## Connection requirements
 
@@ -63,7 +65,7 @@ The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` 
 
 - Only existing spaces; no new conversations, inbound triggers, or delivery webhooks.
 - Sending covers text and images. Reading returns every content type.
-- One default sender covers one channel; pass `sender_id` for the others.
+- Classic Agent apps cannot pass files to tools, so they send text only; workflows and the newer Agent can send images.
 
 ## Privacy
 

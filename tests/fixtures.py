@@ -22,7 +22,6 @@ CREDENTIALS = {
     "api_origin": "https://api.photon.codes",
     "api_key": KEY,
     "project_id": PROJECT,
-    "default_sender_id": SENDER,
 }
 
 HANDLES = {"email": "agent@example.com", "telegram": "123456789"}
@@ -36,6 +35,20 @@ def chat(space=SPACE, platform="imessage"):
         "kind": "direct",
         "participantIds": [SENDER, OTHER_SENDER],
         "details": {},
+        "metadata": {},
+        "createdAt": NOW,
+        "updatedAt": NOW,
+    }
+
+
+def user(user_id=SENDER, kind="agent", handle="+14155550123"):
+    return {
+        "id": user_id,
+        "projectId": PROJECT,
+        "platform": "imessage",
+        "kind": kind,
+        "handle": handle,
+        "details": {"type": "dedicated", "resourceId": RESOURCE} if kind == "agent" else {},
         "metadata": {},
         "createdAt": NOW,
         "updatedAt": NOW,

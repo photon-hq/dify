@@ -1,0 +1,45 @@
+identity:
+  name: get_user
+  author: photon-hq
+  label:
+    en_US: Get user
+    zh_Hans: 获取用户
+description:
+  human:
+    en_US: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, agent for the project's own lines and accounts or human for everyone else. Use it to tell which participant of a space is the project's agent.
+    zh_Hans: 根据 ID 获取一个 Photon 用户，包括联系方式（电话号码、电子邮箱或 Telegram 账号）和 kind：项目自己的号码和账号是 agent，其他人是 human。可用来判断会话的参与者中哪个是项目的代理用户。
+  llm: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, agent for the project's own lines and accounts or human for everyone else. Use it to tell which participant of a space is the project's agent.
+parameters:
+- name: user_id
+  type: string
+  required: true
+  label:
+    en_US: User ID
+    zh_Hans: 用户 ID
+  human_description:
+    en_US: Photon user ID (pho_usr_…), for example from a space's participantIds or a message's sentBy.id.
+    zh_Hans: Photon 用户 ID（pho_usr_…），例如会话的 participantIds 或消息的 sentBy.id。
+  llm_description: Photon user ID (pho_usr_…), for example from a space's participantIds or a message's sentBy.id.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    platform:
+      type: string
+    kind:
+      type: string
+    handle:
+      type: string
+    details:
+      type: object
+    metadata:
+      type: object
+    createdAt:
+      type: string
+    updatedAt:
+      type: string
+extra:
+  python:
+    source: tools/get_user.py

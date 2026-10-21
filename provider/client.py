@@ -1,4 +1,4 @@
-"""Photon API access through Photon's official client, and the plugin's output shapes."""
+"""Photon API access through Photon's official client."""
 
 import hashlib
 import json
@@ -13,6 +13,7 @@ from photon_api.rpc_generated import (
     DownloadAttachmentInput,
     GetAttachmentInput,
     GetMessageInput,
+    GetUserInput,
     ListMessagesInput,
     ListSpacesInput,
     SendMessageInput,
@@ -25,11 +26,11 @@ IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024
 DEFAULT_PAGE_SIZE = 20
-DIFY_RESERVED_NAMES = {"text", "files", "json"}
 INPUTS = {
     "list_spaces": ListSpacesInput,
     "list_messages": ListMessagesInput,
     "get_message": GetMessageInput,
+    "get_user": GetUserInput,
     "send_message": SendMessageInput,
     "upload_attachment": UploadAttachmentInput,
     "get_attachment": GetAttachmentInput,
@@ -76,90 +77,16 @@ def api_error_message(error: ApiError) -> str:
 
 
 def tool_messages(tool: Tool, result: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-    """The result as one JSON message, then each top-level field as a named variable.
-
-    A message's text fills Dify's own text output instead; other fields with Dify's reserved
-    names stay in the JSON message only.
-    """
+    """Photon's result as one JSON message, then each top-level field as a named variable."""
     yield tool.create_json_message(result)
-    if result.get("text"):
-        yield tool.create_text_message(result["text"])
     for name, value in result.items():
-        if name not in DIFY_RESERVED_NAMES:
-            yield tool.create_variable_message(name, value)
-
-
-def normalize_message(data: dict[str, Any]) -> dict[str, Any]:
-    content = data["content"]
-    parts = content["parts"] if content["type"] == "group" else [content]
-    texts = [part["text"] for part in parts if part["type"] == "text"]
-    milestones = data["timestamps"]
-    failure = data.get("failure")
-    status = data["status"]
-    return {
-        "id": data["id"],
-        "platform": data["platform"],
-        "space_id": data["space"]["id"],
-        "direction": "received" if status == "received" else "sent",
-        "type": content["type"],
-        "text": "\n".join(texts) if texts else None,
-        "attachment_ids": [
-            part["attachmentId"] for part in parts if part["type"] in ("attachment", "voice")
-        ],
-        "content": content,
-        "parent_message_id": data.get("parentMessageId"),
-        "status": status,
-        "delivery_confirmed": status == "delivered",
-        "timestamps": {
-            "created_at": data["createdAt"],
-            "updated_at": data["updatedAt"],
-            **{
-                public: milestones.get(api)
-                for public, api in [
-                    ("received_at", "receivedAt"),
-                    ("dispatched_at", "dispatchedAt"),
-                    ("accepted_at", "acceptedAt"),
-                    ("delivered_at", "deliveredAt"),
-                    ("failed_at", "failedAt"),
-                ]
-            },
-        },
-        "failure": {
-            "code": failure["code"],
-            "message": failure["message"],
-            "confirmed_recipient_count": failure.get("confirmedRecipientCount"),
-        }
-        if failure
-        else None,
-    }
-
-
-def normalize_space(data: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": data["id"],
-        "platform": data["platform"],
-        "kind": data["kind"],
-        "participant_ids": data["participantIds"],
-        "created_at": data["createdAt"],
-        "updated_at": data["updatedAt"],
-    }
-
-
-def normalize_attachment(data: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": data["id"],
-        "filename": data.get("filename"),
-        "content_type": data["contentType"],
-        "size_bytes": data["sizeBytes"],
-        "created_at": data["createdAt"],
-    }
+        yield tool.create_variable_message(name, value)
 
 
 class PhotonClient:
     def __init__(self, credentials: dict[str, Any]):
         self.origin = credentials["api_origin"]
         self.project_id = credentials["project_id"]
-        self.default_sender_id = credentials.get("default_sender_id") or None
         self.api = Photon(
             base_url=self.origin, headers={"Authorization": f"Bearer {credentials['api_key']}"}
         )
@@ -220,4 +147,4 @@ class PhotonClient:
             "content-length": str(len(body)),
             "idempotency-key": idempotency,
         }
-        return normalize_attachment(self.call("upload_attachment", headers=headers, body=body))
+        return self.call("upload_attachment", headers=headers, body=body)

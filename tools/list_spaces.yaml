@@ -6,9 +6,9 @@ identity:
     zh_Hans: 查看会话
 description:
   human:
-    en_US: List one page of spaces (conversations) across iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram, optionally for one platform. Continue with next_page_token until null, including after empty pages.
-    zh_Hans: 分页查看 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的会话（space），可按单个渠道筛选。即使当前页为空，也应使用 next_page_token 继续查询，直到该值为 null。
-  llm: List one page of spaces (conversations) across iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram, optionally for one platform. Continue with next_page_token until null, including after empty pages.
+    en_US: List one page of spaces (conversations) across iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram, optionally for one platform or participant. participantIds are user IDs; get_user shows each one's handle and whether it is the project's agent.
+    zh_Hans: 分页查看 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的会话（space），可按单个渠道或参与者筛选。participantIds 是用户 ID，可用 get_user 查看每个用户的联系方式，以及是否为项目的代理用户。
+  llm: List one page of spaces (conversations) across iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram, optionally for one platform or participant. participantIds are user IDs; get_user shows each one's handle and whether it is the project's agent.
 parameters:
 - name: platform
   type: select
@@ -66,9 +66,9 @@ parameters:
     en_US: Page token
     zh_Hans: 分页令牌
   human_description:
-    en_US: Unchanged next_page_token from the previous result. Keep all filters unchanged, even after an empty page.
-    zh_Hans: 原样传入上一次结果中的 next_page_token。即使上一页为空，也应保持所有筛选条件不变。
-  llm_description: Unchanged next_page_token from the previous result. Keep all filters unchanged, even after an empty page.
+    en_US: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
+    zh_Hans: 上一次结果中的 nextPageToken，用于获取下一页，其他参数保持不变。只在需要更多结果时传入。
+  llm_description: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
   form: llm
 - name: participant_handle
   type: string
@@ -116,30 +116,18 @@ output_schema:
             type: string
           kind:
             type: string
-          participant_ids:
+          participantIds:
             type: array
             items:
               type: string
-          created_at:
+          metadata:
+            type: object
+          createdAt:
             type: string
-          updated_at:
+          updatedAt:
             type: string
-        required:
-        - id
-        - platform
-        - kind
-        - participant_ids
-        - created_at
-        - updated_at
-        additionalProperties: false
-    next_page_token:
-      type:
-      - string
-      - 'null'
-  required:
-  - items
-  - next_page_token
-  additionalProperties: false
+    nextPageToken:
+      type: string
 extra:
   python:
     source: tools/list_spaces.py
