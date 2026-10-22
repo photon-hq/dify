@@ -1,0 +1,43 @@
+identity:
+  name: get_attachment
+  author: photon-hq
+  label:
+    en_US: Get attachment
+    zh_Hans: 获取附件
+description:
+  human:
+    en_US: Fetch an attachment's metadata and file by the attachmentId in a message's content. The file is returned as a Dify file output for workflows, for example to pass an image to a vision model; in Agent apps the model cannot see the file. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
+    zh_Hans: 根据消息 content 中的 attachmentId 获取附件的元数据和文件。文件会作为 Dify 文件输出返回，供工作流使用，例如把图片传给视觉模型；在 Agent 应用里，模型看不到这个文件。超过 50 MB（Dify 对插件返回文件的默认上限）的文件不会下载。
+  llm: Fetch an attachment's metadata and file by the attachmentId in a message's content. The file is returned as a Dify file output for workflows, for example to pass an image to a vision model; in Agent apps the model cannot see the file. Files over 50 MB, Dify's default limit for plugin files, are not downloaded.
+parameters:
+- name: attachment_id
+  type: string
+  required: true
+  label:
+    en_US: Attachment ID
+    zh_Hans: 附件 ID
+  human_description:
+    en_US: Attachment ID (pho_att_…), the attachmentId in a message's content.
+    zh_Hans: 消息 content 中的 attachmentId（pho_att_…）。
+  llm_description: Attachment ID (pho_att_…), the attachmentId in a message's content.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    filename:
+      type: string
+    contentType:
+      type: string
+    sizeBytes:
+      type: integer
+    metadata:
+      type: object
+    createdAt:
+      type: string
+    updatedAt:
+      type: string
+extra:
+  python:
+    source: tools/get_attachment.py

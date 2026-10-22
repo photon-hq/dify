@@ -1,0 +1,253 @@
+identity:
+  name: list_messages
+  author: photon-hq
+  label:
+    en_US: List messages
+    zh_Hans: 查看消息
+description:
+  human:
+    en_US: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
+    zh_Hans: 分页查看所有渠道或单个渠道的消息（默认从新到旧），或用 space_id 加 perspective_user_id 查看单个会话的消息。每条消息都包含所属会话、发送者（sentBy），以及 Photon 记录到的接收者（receivedBy）；收到的消息里，receivedBy 就是项目的 agent 用户。
+  llm: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
+parameters:
+- name: platform
+  type: select
+  required: false
+  label:
+    en_US: Platform
+    zh_Hans: 渠道
+  human_description:
+    en_US: Optional channel filter. Omit to include every channel in the project.
+    zh_Hans: 可选的渠道筛选。省略时包含项目中的所有渠道。
+  llm_description: Optional channel filter. Omit to include every channel in the project.
+  form: llm
+  options:
+  - value: imessage
+    label:
+      en_US: iMessage
+      zh_Hans: iMessage
+  - value: sms
+    label:
+      en_US: SMS
+      zh_Hans: 短信（SMS）
+  - value: whatsapp
+    label:
+      en_US: WhatsApp
+      zh_Hans: WhatsApp
+  - value: whatsapp_business
+    label:
+      en_US: WhatsApp Business
+      zh_Hans: WhatsApp Business
+  - value: email
+    label:
+      en_US: Email
+      zh_Hans: 电子邮件
+  - value: telegram
+    label:
+      en_US: Telegram
+      zh_Hans: Telegram
+- name: space_id
+  type: string
+  required: false
+  label:
+    en_US: Space ID
+    zh_Hans: 会话 ID
+  human_description:
+    en_US: Optional pho_spc_ ID, to list that space's messages. Requires perspective_user_id; Photon then rejects platform, created_since and created_before.
+    zh_Hans: 可选的会话 ID（pho_spc_），用于查看该会话的消息。需要同时传入 perspective_user_id；此时 Photon 不接受 platform、created_since 和 created_before。
+  llm_description: Optional pho_spc_ ID, to list that space's messages. Requires perspective_user_id; Photon then rejects platform, created_since and created_before.
+  form: llm
+- name: perspective_user_id
+  type: string
+  required: false
+  label:
+    en_US: Perspective user ID
+    zh_Hans: 视角用户 ID
+  human_description:
+    en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
+    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的 agent 用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id；Photon 会列出这个用户发送和接收的消息。
+  llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
+  form: llm
+- name: direction
+  type: select
+  required: false
+  label:
+    en_US: Direction
+    zh_Hans: 消息方向
+  human_description:
+    en_US: received for inbound messages; sent for outbound messages with any delivery status. Omit for both.
+    zh_Hans: received 表示入站消息；sent 表示任意投递状态的出站消息。省略时同时返回两个方向。
+  llm_description: received for inbound messages; sent for outbound messages with any delivery status. Omit for both.
+  form: llm
+  options:
+  - value: received
+    label:
+      en_US: received
+      zh_Hans: 接收（received）
+  - value: sent
+    label:
+      en_US: sent
+      zh_Hans: 发送（sent）
+- name: order
+  type: select
+  required: false
+  label:
+    en_US: Order
+    zh_Hans: 排序方式
+  human_description:
+    en_US: Newest first by default (desc); asc lists oldest first.
+    zh_Hans: 默认按从新到旧排序（desc）；asc 表示从旧到新。
+  llm_description: Newest first by default (desc); asc lists oldest first.
+  form: llm
+  default: desc
+  options:
+  - value: desc
+    label:
+      en_US: desc
+      zh_Hans: 从新到旧（降序）
+  - value: asc
+    label:
+      en_US: asc
+      zh_Hans: 从旧到新（升序）
+- name: page_size
+  type: number
+  required: false
+  label:
+    en_US: Page size
+    zh_Hans: 每页数量
+  human_description:
+    en_US: Default 20; Photon returns at most 200 per page.
+    zh_Hans: 默认 20；Photon 每页最多返回 200 条。
+  llm_description: Default 20; Photon returns at most 200 per page.
+  form: llm
+  default: 20
+  min: 1
+- name: page_token
+  type: string
+  required: false
+  label:
+    en_US: Page token
+    zh_Hans: 分页令牌
+  human_description:
+    en_US: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
+    zh_Hans: 上一次结果中的 nextPageToken，用于获取下一页，其他参数保持不变。只在需要更多结果时传入。
+  llm_description: nextPageToken from the previous result, to get the next page; keep the other parameters unchanged. Only needed for more results.
+  form: llm
+- name: created_since
+  type: string
+  required: false
+  label:
+    en_US: Created since
+    zh_Hans: 创建时间起点
+  human_description:
+    en_US: Inclusive lower creation-time bound, RFC 3339 with timezone; for example 2026-10-19T00:00:00Z.
+    zh_Hans: 创建时间下限（含），须为带时区的 RFC 3339 时间，例如 2026-10-19T00:00:00Z。
+  llm_description: Inclusive lower creation-time bound, RFC 3339 with timezone; for example 2026-10-19T00:00:00Z.
+  form: llm
+- name: created_before
+  type: string
+  required: false
+  label:
+    en_US: Created before
+    zh_Hans: 创建时间上限
+  human_description:
+    en_US: Exclusive upper creation-time bound, RFC 3339 with timezone.
+    zh_Hans: 创建时间上限（不含），须为带时区的 RFC 3339 时间。
+  llm_description: Exclusive upper creation-time bound, RFC 3339 with timezone.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          platform:
+            type: string
+          space:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              participantIds:
+                type: array
+                items:
+                  type: string
+          sentBy:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              handle:
+                type: string
+          receivedBy:
+            type: object
+            properties:
+              id:
+                type: string
+              kind:
+                type: string
+              handle:
+                type: string
+          content:
+            type: object
+            properties:
+              type:
+                type: string
+              text:
+                type: string
+              attachmentId:
+                type: string
+              parts:
+                type: array
+                items:
+                  type: object
+          parentMessageId:
+            type: string
+          status:
+            type: string
+          timestamps:
+            type: object
+            properties:
+              receivedAt:
+                type: string
+              dispatchedAt:
+                type: string
+              acceptedAt:
+                type: string
+              deliveredAt:
+                type: string
+              failedAt:
+                type: string
+          acceptance:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+          failure:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+          metadata:
+            type: object
+          createdAt:
+            type: string
+          updatedAt:
+            type: string
+    nextPageToken:
+      type: string
+extra:
+  python:
+    source: tools/list_messages.py

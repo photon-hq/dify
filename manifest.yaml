@@ -1,0 +1,42 @@
+version: 0.1.0
+type: plugin
+author: photon-hq
+name: photon
+label:
+  en_US: Photon
+  zh_Hans: Photon
+description:
+  en_US: Send text and images over iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram, browse spaces and messages, and check delivery through Photon.
+  zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发送文字和图片、查看会话与消息，并查询异步投递状态。
+icon: icon.svg
+icon_dark: icon-dark.svg
+resource:
+  memory: 268435456
+  permission:
+    tool:
+      enabled: true
+plugins:
+  tools:
+    - provider/photon.yaml
+tags:
+  - social
+  - productivity
+meta:
+  version: 0.0.1
+  arch:
+    - amd64
+    - arm64
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+  minimum_dify_version: "1.17.1"
+privacy: PRIVACY.md
+repo: https://github.com/photon-hq/dify
+contact: help@photon.codes
+network:
+  domains:
+    - api.photon.codes
+    - api.staging.photon.codes
+verified: false
+created_at: "2026-10-19T15:19:29Z"

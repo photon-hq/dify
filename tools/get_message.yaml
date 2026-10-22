@@ -1,0 +1,112 @@
+identity:
+  name: get_message
+  author: photon-hq
+  label:
+    en_US: Get message
+    zh_Hans: 获取消息
+description:
+  human:
+    en_US: Fetch one message with its sender (sentBy), content, status and timestamps. dispatched means handed to the channel, the usual status soon after sending; delivered means delivery is confirmed; accepted means the channel took the message without confirming delivery, and acceptance.code says why; failed means it was not delivered, and failure says why. This tool never polls or resends.
+    zh_Hans: 获取一条消息，包括发送者（sentBy）、内容、状态和时间戳。dispatched：已交给渠道，发送后不久通常是这个状态。delivered：已确认送达。accepted：渠道已接收，但没有确认送达，原因见 acceptance.code。failed：发送失败，原因见 failure。此工具不会轮询或重新发送。
+  llm: Fetch one message with its sender (sentBy), content, status and timestamps. dispatched means handed to the channel, the usual status soon after sending; delivered means delivery is confirmed; accepted means the channel took the message without confirming delivery, and acceptance.code says why; failed means it was not delivered, and failure says why. This tool never polls or resends.
+parameters:
+- name: message_id
+  type: string
+  required: true
+  label:
+    en_US: Message ID
+    zh_Hans: 消息 ID
+  human_description:
+    en_US: Photon message ID (pho_msg_…), the id returned by send_message or list_messages.
+    zh_Hans: send_message 或 list_messages 返回的 Photon 消息 ID（pho_msg_…）。
+  llm_description: Photon message ID (pho_msg_…), the id returned by send_message or list_messages.
+  form: llm
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+    platform:
+      type: string
+    space:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        participantIds:
+          type: array
+          items:
+            type: string
+    sentBy:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        handle:
+          type: string
+    receivedBy:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        handle:
+          type: string
+    content:
+      type: object
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+        attachmentId:
+          type: string
+        parts:
+          type: array
+          items:
+            type: object
+    parentMessageId:
+      type: string
+    status:
+      type: string
+    timestamps:
+      type: object
+      properties:
+        receivedAt:
+          type: string
+        dispatchedAt:
+          type: string
+        acceptedAt:
+          type: string
+        deliveredAt:
+          type: string
+        failedAt:
+          type: string
+    acceptance:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    failure:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    metadata:
+      type: object
+    createdAt:
+      type: string
+    updatedAt:
+      type: string
+extra:
+  python:
+    source: tools/get_message.py
