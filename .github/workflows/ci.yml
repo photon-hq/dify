@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        plugin: [".", trigger]
+        plugin: [".", trigger, bot]
     defaults:
       run:
         working-directory: ${{ matrix.plugin }}
