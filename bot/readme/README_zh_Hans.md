@@ -2,7 +2,7 @@
 
 通过 [Photon](https://photon.codes) 的消息 API，用 Dify 的 Chatflow 或聊天助手应用回复 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的消息。
 
-Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的*代理用户*（agent）。项目收到消息时，Photon 会向本插件的 API 端点推送一条带签名的 `message.received` webhook。插件把消息的文字交给端点设置中选择的应用，再以收到这条消息的代理用户的身份，把应用的回答发回同一个会话。每个会话对应一个 Dify 对话，所以应用回答时会参考该会话之前的消息。
+Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的 *agent 用户*。项目收到消息时，Photon 会向本插件的 API 端点推送一条带签名的 `message.received` webhook。插件把消息的文字交给端点设置中选择的应用，再以收到这条消息的 agent 用户的身份，把应用的回答发回同一个会话。每个会话对应一个 Dify 对话，所以应用回答时会参考该会话之前的消息。
 
 ## 配置
 
@@ -71,7 +71,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，请把 `ENDP
 
 幂等键为 `pho_msg_A.reply`，由收到的消息生成，所以 Photon 对每条消息最多只发送一条回复。
 
-- 只回答文字内容（`content.type: text`）的 `message.received`。其他事件、其他内容（图片、语音、表情回应等），项目代理用户发出的消息，以及没有 `receivedBy` 的消息，都只确认收到、不回答。跳过代理用户发出的消息，可以避免它们互相回复；回复要以 `receivedBy` 的身份发出。
+- 只回答文字内容（`content.type: text`）的 `message.received`。其他事件、其他内容（图片、语音、表情回应等），项目 agent 用户发出的消息，以及没有 `receivedBy` 的消息，都只确认收到、不回答。跳过 agent 用户发出的消息，可以避免它们互相回复；回复要以 `receivedBy` 的身份发出。
 - 应用回答的文字为空时，不发送任何内容。
 - 每次推送都会先校验 Photon 的签名，再做其他处理：按 Standard Webhooks 规范，对推送的 ID、时间戳和正文做 HMAC-SHA256 签名，且时间戳须在 5 分钟以内。校验失败的推送返回 HTTP 401，不会触发任何处理。
 
