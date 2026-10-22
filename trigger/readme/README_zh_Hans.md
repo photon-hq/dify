@@ -2,7 +2,7 @@
 
 通过 [Photon](https://photon.codes) 的消息 API，在 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件或 Telegram 收到消息时启动 Dify 工作流。
 
-Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的*代理用户*（agent）。项目收到消息时，Photon 会推送一条带签名的 `message.received` webhook，本插件据此启动使用该事件的工作流。要回复，请使用 [Photon 插件](https://github.com/photon-hq/dify)的 `send_message`。
+Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的 *agent 用户*。项目收到消息时，Photon 会推送一条带签名的 `message.received` webhook，本插件据此启动使用该事件的工作流。要回复，请使用 [Photon 插件](https://github.com/photon-hq/dify)的 `send_message`。
 
 ## 事件
 
@@ -42,7 +42,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
 }
 ```
 
-`receivedBy` 是收到这条消息的项目代理用户，所以回复会从同一个号码、机器人或邮箱账号发出。推送超时或失败时，Photon 会再推送一次同一条消息；用消息的 `id` 生成幂等键，重复推送时就不会再发一次回复。
+`receivedBy` 是收到这条消息的项目 agent 用户，所以回复会从同一个号码、机器人或邮箱账号发出。推送超时或失败时，Photon 会再推送一次同一条消息；用消息的 `id` 生成幂等键，重复推送时就不会再发一次回复。
 
 事件有三个可选参数，在开始节点上设置：**渠道**（只处理选中的渠道；不选表示全部）、**内容包含**（不区分大小写）和**内容正则**。不满足条件的消息会被跳过，不启动工作流；设置了**内容包含**时，没有正文的消息会被跳过。
 
