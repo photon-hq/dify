@@ -80,7 +80,7 @@ with the idempotency key `pho_msg_A.reply`, derived from the received message, s
 Photon waits 20 seconds for each delivery attempt and retries a delivery that times out or fails; the destination's later messages wait until that delivery is done. The plugin calls the app and sends the answer before it responds, so:
 
 - An answer that takes the app longer than 20 seconds may not be sent.
-- Each message is answered at most once. When Photon delivers a message again, after a timeout or an error, the plugin acknowledges it without calling the app again. A message whose app call or reply failed gets no reply, and after a failed app call the space's next message starts a new Dify conversation.
+- Each message is answered at most once. When Photon delivers a message again, after a timeout or an error, the plugin acknowledges it without calling the app again. A message whose app call or reply failed gets no reply; the space keeps its Dify conversation.
 
 ## Connection requirements
 
@@ -91,6 +91,7 @@ The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` 
 - Only text is answered, and replies are plain text.
 - The endpoint answers every text message its destination delivers, on every platform and line of the project.
 - Agent apps cannot answer. Dify 1.17.1 rejects the plugin's blocking call to an Agent app (`agent-chat`), and rejects apps of its newer Agent runtime (app mode `agent`) as `unexpected app type`. To use tools, add tool or Agent nodes to a Chatflow.
+- If a space's conversation is deleted in Dify, a Chatbot app fails every later message in that space, because Dify cannot find the conversation; a Chatflow starts a new one.
 - If the destination's signing secret is rotated in Photon, save the new secret in the endpoint before the old one expires.
 
 ## Privacy

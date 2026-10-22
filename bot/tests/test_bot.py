@@ -340,26 +340,21 @@ class BotTests(unittest.TestCase):
         self.assertEqual((len(self.app_calls), self.calls), (1, []))
         self.assertEqual(self.stored(), {f"{APP}:{SPACE}": {"message_id": MESSAGE}})
 
-    def test_after_a_failed_app_call_the_next_message_starts_a_new_conversation(self):
+    def test_a_failed_app_call_keeps_the_conversation(self):
         third = "pho_msg_00000000000000000000000004"
-        self.answers.extend(
-            [
-                answer(),
-                Exception("Conversation Not Exists."),
-                answer(conversation=OTHER_CONVERSATION),
-            ]
-        )
+        self.answers.extend([answer(), Exception("model rate limited"), answer("Third answer.")])
         self.queue(sent())
         self.queue(sent())
         self.assertEqual(self.deliver(delivery()), (200, ""))
         self.assertEqual(self.deliver(delivery(message_id=OTHER_MESSAGE, text="And?"))[0], 500)
         self.assertEqual(self.deliver(delivery(message_id=third, text="Hello?")), (200, ""))
         self.assertEqual(
-            [call["conversation_id"] for call in self.app_calls], [None, CONVERSATION, None]
+            [call["conversation_id"] for call in self.app_calls],
+            [None, CONVERSATION, CONVERSATION],
         )
         self.assertEqual(
             self.stored(),
-            {f"{APP}:{SPACE}": {"message_id": third, "conversation_id": OTHER_CONVERSATION}},
+            {f"{APP}:{SPACE}": {"message_id": third, "conversation_id": CONVERSATION}},
         )
 
     def test_a_message_handled_during_a_slow_app_call_keeps_the_conversation(self):
