@@ -146,6 +146,12 @@ class TriggerTests(unittest.TestCase):
                 VECTOR["secret"],
                 VECTOR["now"],
             ),
+            "empty secret": (
+                VECTOR["body"],
+                signed(VECTOR["body"], secret="whsec_", timestamp=VECTOR["now"]),
+                "whsec_",
+                VECTOR["now"],
+            ),
         }
         for name, (body, case_headers, secret, now) in cases.items():
             with self.subTest(case=name), self.assertRaises(TriggerValidationError):

@@ -88,6 +88,9 @@ def call(credentials: Mapping[str, Any], operation: str, **parts: Any) -> dict[s
 
 def verify_signature(request: Request, secret: str, now: float) -> None:
     """Check a delivery's Standard Webhooks signature and timestamp, as Photon signs them."""
+    key = base64.b64decode(secret.removeprefix("whsec_"))
+    if not key:
+        raise TriggerValidationError("The subscription has no signing secret.")
     webhook_id = request.headers.get("webhook-id", "")
     timestamp = request.headers.get("webhook-timestamp", "")
     signatures = request.headers.get("webhook-signature", "").split()
@@ -95,7 +98,6 @@ def verify_signature(request: Request, secret: str, now: float) -> None:
         raise TriggerValidationError("Missing or malformed Photon webhook headers.")
     if abs(now - int(timestamp)) > TOLERANCE_SECONDS:
         raise TriggerValidationError("The Photon webhook timestamp is more than 5 minutes off.")
-    key = base64.b64decode(secret.removeprefix("whsec_"))
     signed = f"{webhook_id}.{timestamp}.".encode() + request.get_data()
     expected = b"v1," + base64.b64encode(hmac.new(key, signed, hashlib.sha256).digest())
     if not any(hmac.compare_digest(signature.encode(), expected) for signature in signatures):
