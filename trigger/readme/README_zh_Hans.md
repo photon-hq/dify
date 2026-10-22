@@ -28,7 +28,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
 
 ## 使用
 
-事件的变量就是 webhook 中 Photon 的消息对象：`id`、`platform`、`space`、`sentBy`、`receivedBy`、`content`、`status`、`timestamps`、`createdAt`，回复类消息另有 `parentMessageId`。`content.type` 表示收到的内容类型；文字消息的正文在 `content.text`，附件的 ID 在 `content.attachmentId`，可传给 Photon 插件的 `get_attachment`。
+事件的变量就是 webhook 中 Photon 的消息对象：`id`、`platform`、`space`、`sentBy`、`receivedBy`、`content`、`status`、`timestamps`、`createdAt`，回复类消息另有 `parentMessageId`。`content.type` 表示收到的内容类型；文字消息的正文在 `content.text`，附件的 ID 在 `content.attachmentId`，可传给 Photon 插件的 `get_attachment`。除了文字和附件，`message.received` 还可能是表情回应（`reaction`）、编辑（`text.update`）、撤回（`message.delete`）、已读回执（`message.read`）或投票（`poll`）等，它们同样会启动工作流；只想回复文字时，请按 `content.type` 分支。
 
 要在同一会话中回复，把以下参数传给 Photon 插件的 `send_message`：
 
@@ -37,11 +37,12 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
   "space_id": "<事件的 space.id>",
   "sender_id": "<事件的 receivedBy.id>",
   "type": "text",
-  "text": "收到，我们会尽快回复您。"
+  "text": "收到，我们会尽快回复您。",
+  "idempotency_key": "<事件的 id>.reply"
 }
 ```
 
-`receivedBy` 是收到这条消息的项目代理用户，所以回复会从同一个号码、机器人或邮箱账号发出。
+`receivedBy` 是收到这条消息的项目代理用户，所以回复会从同一个号码、机器人或邮箱账号发出。推送超时或失败时，Photon 会再推送一次同一条消息；用消息的 `id` 生成幂等键，重复推送时就不会再发一次回复。
 
 事件有三个可选参数，在开始节点上设置：**渠道**（只处理选中的渠道；不选表示全部）、**内容包含**（不区分大小写）和**内容正则**。不满足条件的消息会被跳过，不启动工作流；设置了**内容包含**时，没有正文的消息会被跳过。
 

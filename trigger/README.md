@@ -28,7 +28,7 @@ Photon delivers only to public HTTPS URLs. On self-hosted Dify, set `TRIGGER_URL
 
 ## Usage
 
-The event's variables are Photon's message as the webhook carries it: `id`, `platform`, `space`, `sentBy`, `receivedBy`, `content`, `status`, `timestamps`, `createdAt`, and `parentMessageId` when the message is a reply. `content.type` says what arrived; a text message's text is `content.text`, and an attachment's ID is `content.attachmentId`, for the Photon plugin's `get_attachment`.
+The event's variables are Photon's message as the webhook carries it: `id`, `platform`, `space`, `sentBy`, `receivedBy`, `content`, `status`, `timestamps`, `createdAt`, and `parentMessageId` when the message is a reply. `content.type` says what arrived; a text message's text is `content.text`, and an attachment's ID is `content.attachmentId`, for the Photon plugin's `get_attachment`. Besides text and attachments, `message.received` can carry other content, such as a reaction (`reaction`), an edit (`text.update`), a deletion (`message.delete`), a read receipt (`message.read`), or a poll (`poll`), and these start the workflow too; to answer only text, branch on `content.type`.
 
 To reply in the same space, pass these to the Photon plugin's `send_message`:
 
@@ -37,11 +37,12 @@ To reply in the same space, pass these to the Photon plugin's `send_message`:
   "space_id": "<the event's space.id>",
   "sender_id": "<the event's receivedBy.id>",
   "type": "text",
-  "text": "Thanks, we got your message."
+  "text": "Thanks, we got your message.",
+  "idempotency_key": "<the event's id>.reply"
 }
 ```
 
-`receivedBy` is the project's agent user that received the message, so the reply comes from the same number, bot, or email account.
+`receivedBy` is the project's agent user that received the message, so the reply comes from the same number, bot, or email account. Photon delivers a message again when a delivery times out or fails; a key made from the message's `id` keeps a repeated delivery from sending a second reply.
 
 The event has three optional parameters, set on the start node: **Platforms** (start only for the selected platforms; none selected means all), **Text contains** (case-insensitive), and **Text regex**. A message that does not match is skipped and starts nothing; with **Text contains** set, a message without text is skipped.
 
