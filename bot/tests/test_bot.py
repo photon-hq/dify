@@ -109,6 +109,8 @@ class BotTests(unittest.TestCase):
         self.app_calls.append(data)
         self.assertTrue(self.answers, "Unexpected additional app call")
         queued = self.answers.pop(0)
+        if callable(queued):
+            queued = queued()
         if isinstance(queued, Exception):
             raise queued
         yield queued
@@ -358,6 +360,30 @@ class BotTests(unittest.TestCase):
         self.assertEqual(
             self.stored(),
             {f"{APP}:{SPACE}": {"message_id": third, "conversation_id": OTHER_CONVERSATION}},
+        )
+
+    def test_a_message_handled_during_a_slow_app_call_keeps_the_conversation(self):
+        third = "pho_msg_00000000000000000000000004"
+
+        def slow_answer():
+            # Photon's retry was acknowledged, so it delivers the space's next message meanwhile.
+            self.assertEqual(
+                self.deliver(delivery(message_id=third, text="Still there?")), (200, "")
+            )
+            return answer("Second answer.")
+
+        self.answers.extend([answer(), slow_answer, answer("Third answer.")])
+        for _ in range(3):
+            self.queue(sent())
+        self.assertEqual(self.deliver(delivery()), (200, ""))
+        self.assertEqual(self.deliver(delivery(message_id=OTHER_MESSAGE, text="And?")), (200, ""))
+        self.assertEqual(
+            [call["conversation_id"] for call in self.app_calls],
+            [None, CONVERSATION, CONVERSATION],
+        )
+        self.assertEqual(
+            self.stored(),
+            {f"{APP}:{SPACE}": {"message_id": third, "conversation_id": CONVERSATION}},
         )
 
     def test_an_empty_answer_keeps_the_conversation_and_sends_nothing(self):

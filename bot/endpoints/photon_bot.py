@@ -81,20 +81,31 @@ class PhotonBotEndpoint(Endpoint):
         # Photon delivers a message again after a timeout or an error; answer it only once.
         if state.get("message_id") == message["id"]:
             return Response(status=200)
-        # Keep no conversation until the app answers: a Chatbot app fails every call with a
-        # conversation it no longer has, so after a failed call the next message starts a new one.
-        conversation_id = state.pop("conversation_id", None)
         state["message_id"] = message["id"]
         storage.set(key, json.dumps(state).encode())
-        result = self.session.app.chat.invoke(
-            app_id=app["app_id"],
-            query=message["content"]["text"],
-            inputs=app.get("inputs", {}),
-            response_mode="blocking",
-            conversation_id=conversation_id,
-        )
-        state["conversation_id"] = result["conversation_id"]
-        storage.set(key, json.dumps(state).encode())
+        conversation_id = state.get("conversation_id")
+        # Photon may deliver the space's next message while a slow call runs, so the record is
+        # read again before each update below.
+        try:
+            result = self.session.app.chat.invoke(
+                app_id=app["app_id"],
+                query=message["content"]["text"],
+                inputs=app.get("inputs", {}),
+                response_mode="blocking",
+                conversation_id=conversation_id,
+            )
+        except Exception:
+            # A Chatbot app fails every call with a conversation it no longer has, so the space's
+            # next message starts a new one.
+            current = json.loads(storage.get(key))
+            if conversation_id and current.get("conversation_id") == conversation_id:
+                del current["conversation_id"]
+                storage.set(key, json.dumps(current).encode())
+            raise
+        if result["conversation_id"] != conversation_id:
+            current = json.loads(storage.get(key))
+            current["conversation_id"] = result["conversation_id"]
+            storage.set(key, json.dumps(current).encode())
         if result["answer"]:
             send_reply(settings, delivery["data"]["projectId"], message, result["answer"])
         return Response(status=200)
