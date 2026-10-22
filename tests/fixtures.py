@@ -41,11 +41,11 @@ def chat(space=SPACE, platform="imessage"):
     }
 
 
-def user(user_id=SENDER, kind="agent", handle="+14155550123"):
+def user(user_id=SENDER, kind="agent", handle="+14155550123", platform="imessage"):
     return {
         "id": user_id,
         "projectId": PROJECT,
-        "platform": "imessage",
+        "platform": platform,
         "kind": kind,
         "handle": handle,
         "details": {"type": "dedicated", "resourceId": RESOURCE} if kind == "agent" else {},

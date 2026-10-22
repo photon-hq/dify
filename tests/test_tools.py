@@ -476,12 +476,12 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result, user(OTHER_SENDER, "human", "+14155550199"))
 
     def test_create_or_get_user_sends_platform_and_handle_and_returns_photons_user(self):
-        self.queue(user(OTHER_SENDER, "human", "+14155550199"))
+        self.queue(user(OTHER_SENDER, "human", "+14155550199", platform="sms"))
         result = self.invoke("create_or_get_user", {"platform": "sms", "handle": "+14155550199"})
         call = self.calls[-1]
         self.assertEqual((call.method, call.url.path), ("POST", f"/v1/projects/{PROJECT}/users"))
         self.assertEqual(self.body(), {"platform": "sms", "handle": "+14155550199"})
-        self.assertEqual(result, user(OTHER_SENDER, "human", "+14155550199"))
+        self.assertEqual(result, user(OTHER_SENDER, "human", "+14155550199", platform="sms"))
 
     def test_create_or_get_space_sends_participants_and_returns_photons_space_with_its_key(self):
         self.queue(chat(platform="sms"), status=201)
