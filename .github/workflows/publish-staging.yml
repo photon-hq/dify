@@ -12,9 +12,12 @@ on:
 permissions:
   contents: read
 
+# Every push to main gets its own prerelease, so pending runs wait in order instead of
+# replacing each other.
 concurrency:
   group: publish-staging
   cancel-in-progress: false
+  queue: max
 
 jobs:
   ci:

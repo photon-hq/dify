@@ -50,5 +50,10 @@ jobs:
             echo "::error::v$version is already released"
             exit 1
           fi
+          # gh release create reuses an existing tag, so the tag must not point elsewhere.
+          if tagged=$(gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/v$version" --jq .sha 2>/dev/null) && [ "$tagged" != "$commit" ]; then
+            echo "::error::Tag v$version already points to $tagged, not $commit"
+            exit 1
+          fi
           gh release create "v$version" "files/$production" --repo "$GITHUB_REPOSITORY" --target "$commit" \
             --title "v$version" --notes "Production release of $production, promoted from $tag ($commit)."
