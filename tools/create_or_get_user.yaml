@@ -6,9 +6,9 @@ identity:
     zh_Hans: 创建或获取用户
 description:
   human:
-    en_US: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for the project's own lines and accounts and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
-    zh_Hans: 在一个渠道上为电话号码或电子邮箱创建或获取对应的 Photon 用户，例如要发起会话的联系人。Photon 已经有这个联系方式时，返回已有的用户。kind 为 agent 表示项目自己的号码和账号，human 表示其他人，因此用项目自己的号码会得到项目的代理用户。可把用户 ID 传给 create_or_get_space。Photon 在 Telegram 上不提供此操作，Telegram 会话要由对方先给机器人发消息。
-  llm: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for the project's own lines and accounts and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
+    en_US: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for a line or account Photon manages and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
+    zh_Hans: 在一个渠道上为电话号码或电子邮箱创建或获取对应的 Photon 用户，例如要发起会话的联系人。Photon 已经有这个联系方式时，返回已有的用户。kind 为 agent 表示 Photon 托管的号码或账号，human 表示其他人，因此用项目自己的号码会得到项目的代理用户。可把用户 ID 传给 create_or_get_space。Photon 在 Telegram 上不提供此操作，Telegram 会话要由对方先给机器人发消息。
+  llm: Create or get the Photon user for a phone number or email address on one platform, for example a person to start a conversation with. If Photon already knows the handle, it returns that user. kind is agent for a line or account Photon manages and human for everyone else, so the project's own number returns its agent user. Pass the user ID to create_or_get_space. Photon does not offer this on Telegram, where a conversation starts when the person messages the bot.
 parameters:
 - name: platform
   type: select

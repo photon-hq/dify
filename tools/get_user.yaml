@@ -6,9 +6,9 @@ identity:
     zh_Hans: 获取用户
 description:
   human:
-    en_US: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, agent for the project's own lines and accounts or human for everyone else. Use it to tell which participant of a space is the project's agent.
-    zh_Hans: 根据 ID 获取一个 Photon 用户，包括联系方式（电话号码、电子邮箱或 Telegram 账号）和 kind：项目自己的号码和账号是 agent，其他人是 human。可用来判断会话的参与者中哪个是项目的代理用户。
-  llm: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, agent for the project's own lines and accounts or human for everyone else. Use it to tell which participant of a space is the project's agent.
+    en_US: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, which is agent for a line or account Photon manages and human for everyone else. In details, this project's dedicated lines have resourceId, another project's only managedBy, and shared lines have type shared. Use it to tell which participant of a space is the project's agent.
+    zh_Hans: 根据 ID 获取一个 Photon 用户，包括联系方式（电话号码、电子邮箱或 Telegram 账号）和 kind：Photon 托管的号码或账号是 agent，其他人是 human。在 details 中，本项目的专属号码带 resourceId，其他项目的专属号码只带 managedBy，共享号码的 type 为 shared。可用来判断会话的参与者中哪个是项目的代理用户。
+  llm: Fetch one Photon user by ID, with its handle (phone number, email address, or Telegram account) and kind, which is agent for a line or account Photon manages and human for everyone else. In details, this project's dedicated lines have resourceId, another project's only managedBy, and shared lines have type shared. Use it to tell which participant of a space is the project's agent.
 parameters:
 - name: user_id
   type: string

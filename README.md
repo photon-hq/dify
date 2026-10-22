@@ -13,7 +13,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 | `create_or_get_space` | Returns the space for the given users on one platform, creating it if needed. |
 | `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. |
 | `get_message` | Returns one message with its sender, content, and delivery status. |
-| `get_user` | Returns one user's handle, and whether it is the project's agent or a person. |
+| `get_user` | Returns one user's handle, and whether it is an agent (a line or account Photon manages) or a person. |
 | `create_or_get_user` | Returns the user for a phone number or email address on one platform, creating it if Photon does not know it yet. |
 | `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. |
 
@@ -47,7 +47,7 @@ Send text, or images with optional text:
 ```
 
 - Several images, or images with text, are sent as one `group` message: the text first, then the images in order. Each image is uploaded to Photon before the message.
-- `sender_id` is the project's agent user in the space: the `receivedBy.id` of a message received in it, or the `sentBy.id` of one sent from it. `get_user` shows whether a participant is the project's agent.
+- `sender_id` is the project's agent user in the space: the `receivedBy.id` of a message received in it, or the `sentBy.id` of one sent from it. `get_user` tells agents (`kind: agent`) from people; this project's dedicated lines have `details.resourceId`.
 - `parent_message_id` (reply) and `email_subject` are optional.
 - Photon decides what each channel accepts. When it rejects a send, the error keeps Photon's status, code and reason, for example `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`.
 - Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later: `delivered` confirms delivery, `accepted` means the channel took the message without confirming delivery (`acceptance.code` says why), and `failed` carries `failure`.
