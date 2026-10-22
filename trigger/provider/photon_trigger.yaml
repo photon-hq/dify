@@ -8,6 +8,7 @@ identity:
     en_US: Start a workflow when a Photon project receives a message on iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram.
     zh_Hans: 当 Photon 项目在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件或 Telegram 上收到消息时启动工作流。
   icon: icon.svg
+  icon_dark: icon-dark.svg
 subscription_schema:
 - name: signing_secret
   type: secret-input
