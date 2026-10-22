@@ -89,11 +89,15 @@ See [PRIVACY.md](PRIVACY.md).
 Source: [photon-hq/dify](https://github.com/photon-hq/dify). With Python 3.12:
 
 ```sh
-pip install -r requirements.txt
+pip install -r requirements.txt ruff==0.15.0
+ruff check .
+ruff format --check .
 python -m unittest discover -s tests
 ```
 
 The tests mock Photon and Dify's file downloads and never send messages.
+
+Every merge to `main` publishes a GitHub prerelease with a staging build, which defaults to Photon's staging API, and the production candidate. The production release is published by running the **Promote to production** workflow.
 
 ## License
 
