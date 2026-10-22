@@ -1,0 +1,73 @@
+identity:
+  author: photon-hq
+  name: photon_trigger
+  label:
+    en_US: Photon Trigger
+    zh_Hans: Photon 触发器
+  description:
+    en_US: Start a workflow when a Photon project receives a message on iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram.
+    zh_Hans: 当 Photon 项目在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件或 Telegram 上收到消息时启动工作流。
+  icon: icon.svg
+  icon_dark: icon-dark.svg
+subscription_schema:
+- name: signing_secret
+  type: secret-input
+  required: true
+  label:
+    en_US: Signing secret
+    zh_Hans: 签名密钥
+  help:
+    en_US: The whsec_ secret Photon returned when the webhook destination for this endpoint was created. When Dify creates the destination, it stores the secret itself.
+    zh_Hans: Photon 为这个地址创建推送地址时返回的 whsec_ 密钥。由 Dify 创建推送地址时，密钥会自动保存。
+subscription_constructor:
+  credentials_schema:
+    api_origin:
+      type: select
+      required: true
+      default: https://api.photon.codes
+      label:
+        en_US: Photon environment
+        zh_Hans: Photon 环境
+      help:
+        en_US: Select Production or Staging to match your API key and project. Production is the default.
+        zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。默认使用生产环境。
+      options:
+      - value: https://api.photon.codes
+        label:
+          en_US: Production (https://api.photon.codes)
+          zh_Hans: 生产环境（https://api.photon.codes）
+      - value: https://api.staging.photon.codes
+        label:
+          en_US: Staging (https://api.staging.photon.codes)
+          zh_Hans: 预发布环境（https://api.staging.photon.codes）
+    api_key:
+      type: secret-input
+      required: true
+      label:
+        en_US: Photon API key
+        zh_Hans: Photon API 密钥
+      help:
+        en_US: Account Service Key (pho_ask_) or Project API key (pho_sk_) from the selected Photon environment, allowed to manage the project's webhook destinations. Enter the raw key without Bearer. Project keys must belong to project_id.
+        zh_Hans: 所选 Photon 环境的账号服务密钥（pho_ask_）或项目 API 密钥（pho_sk_），须有权管理项目的推送地址。直接填写原始密钥，无需添加 Bearer。项目密钥必须属于 project_id 指定的项目。
+      placeholder:
+        en_US: Photon API key
+        zh_Hans: Photon API 密钥
+      url: https://photon.codes
+    project_id:
+      type: text-input
+      required: true
+      label:
+        en_US: Photon project ID
+        zh_Hans: Photon 项目 ID
+      help:
+        en_US: Full project ID starting with pho_prj_, copied from your project settings in the selected Photon environment.
+        zh_Hans: 从所选 Photon 环境的项目设置中复制完整的项目 ID，须以 pho_prj_ 开头。
+      placeholder:
+        en_US: Photon project ID
+        zh_Hans: Photon 项目 ID
+      url: https://photon.codes
+events:
+- events/message_received/message_received.yaml
+extra:
+  python:
+    source: provider/photon_trigger.py

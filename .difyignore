@@ -22,3 +22,4 @@ scripts/
 .DS_Store
 .idea/
 .vscode/
+trigger/

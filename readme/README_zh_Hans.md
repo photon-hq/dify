@@ -75,7 +75,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 ## 限制
 
-- 没有入站触发器或投递回调。
+- 收到消息时启动工作流，由单独的 Photon 触发器插件负责，源码在本仓库的 `trigger/`。不包括投递状态回调。
 - Photon 不能在 Telegram 上新建用户或会话（`OPERATION_UNAVAILABLE`）；Telegram 会话要由对方先给机器人发消息。
 - 发送支持文字和图片，读取支持所有内容类型。
 - 经典 Agent 应用不能把文件传给工具，所以只能发文字；工作流和新版 Agent 可以发图片。

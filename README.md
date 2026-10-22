@@ -75,7 +75,7 @@ The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` 
 
 ## Limitations
 
-- No inbound triggers or delivery webhooks.
+- Received messages start workflows through the separate Photon Trigger plugin, in `trigger/` of this repository. Delivery status webhooks are not covered.
 - Photon does not create users or spaces on Telegram (`OPERATION_UNAVAILABLE`); a Telegram conversation starts when the person messages the bot.
 - Sending covers text and images. Reading returns every content type.
 - Classic Agent apps cannot pass files to tools, so they send text only; workflows and the newer Agent can send images.

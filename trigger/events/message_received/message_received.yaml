@@ -1,0 +1,133 @@
+identity:
+  name: message_received
+  author: photon-hq
+  label:
+    en_US: Message received
+    zh_Hans: 收到消息
+description:
+  en_US: Starts when the project receives a message (Photon's message.received). Its variables are Photon's message. To reply, pass space.id as space_id and receivedBy.id as sender_id to the Photon plugin's send_message.
+  zh_Hans: 项目收到消息时（Photon 的 message.received）启动，变量就是 Photon 的消息对象。要回复，把 space.id 作为 space_id、把 receivedBy.id 作为 sender_id 传给 Photon 插件的 send_message。
+parameters:
+- name: platforms
+  label:
+    en_US: Platforms
+    zh_Hans: 渠道
+  type: select
+  required: false
+  multiple: true
+  options:
+  - value: imessage
+    label:
+      en_US: iMessage
+      zh_Hans: iMessage
+  - value: sms
+    label:
+      en_US: SMS
+      zh_Hans: 短信（SMS）
+  - value: whatsapp
+    label:
+      en_US: WhatsApp
+      zh_Hans: WhatsApp
+  - value: whatsapp_business
+    label:
+      en_US: WhatsApp Business
+      zh_Hans: WhatsApp Business
+  - value: email
+    label:
+      en_US: Email
+      zh_Hans: 电子邮件
+  - value: telegram
+    label:
+      en_US: Telegram
+      zh_Hans: Telegram
+  description:
+    en_US: Start only for messages on these platforms. Leave empty for all platforms.
+    zh_Hans: 只处理这些渠道的消息；不选表示全部渠道。
+- name: text_contains
+  label:
+    en_US: Text contains
+    zh_Hans: 内容包含
+  type: string
+  required: false
+  description:
+    en_US: Start only when the message text contains this, ignoring case. Messages without text are skipped.
+    zh_Hans: 只处理正文包含这段文字的消息，不区分大小写；没有正文的消息会被跳过。
+- name: text_regex
+  label:
+    en_US: Text regex
+    zh_Hans: 内容正则
+  type: string
+  required: false
+  description:
+    en_US: Start only when the message text matches this regular expression. A message without text is matched as empty text.
+    zh_Hans: 只处理正文匹配这个正则表达式的消息；没有正文的消息按空文本匹配。
+output_schema:
+  type: object
+  properties:
+    id:
+      type: string
+      description: The message ID (pho_msg_…).
+    platform:
+      type: string
+      description: imessage, sms, whatsapp, whatsapp_business, email, or telegram.
+    space:
+      type: object
+      description: The space (conversation) the message arrived in.
+      properties:
+        id:
+          type: string
+          description: The space ID; send_message's space_id for a reply.
+        kind:
+          type: string
+        participantIds:
+          type: array
+          items:
+            type: string
+    sentBy:
+      type: object
+      description: The user who sent the message.
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        handle:
+          type: string
+    receivedBy:
+      type: object
+      description: The project's agent user that received the message.
+      properties:
+        id:
+          type: string
+          description: The agent's user ID; send_message's sender_id for a reply.
+        kind:
+          type: string
+        handle:
+          type: string
+    content:
+      type: object
+      description: The message content; type says which other fields it has.
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+          description: The text of a text message.
+        attachmentId:
+          type: string
+          description: The attachment ID of an attachment message, for get_attachment.
+    parentMessageId:
+      type: string
+      description: The ID of the message this one replies to, when it is a reply.
+    status:
+      type: string
+    timestamps:
+      type: object
+      properties:
+        receivedAt:
+          type: string
+    createdAt:
+      type: string
+extra:
+  python:
+    source: events/message_received/message_received.py
