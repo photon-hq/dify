@@ -8,6 +8,7 @@ identity:
     en_US: Start conversations, send text and images, list spaces and messages, read attachments and users, and inspect asynchronous delivery status on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram through Photon.
     zh_Hans: 通过 Photon 在 iMessage、短信、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上发起会话、发送文字和图片、查看会话与消息、读取附件和用户，并查询异步投递状态。
   icon: icon.svg
+  icon_dark: icon-dark.svg
   tags:
   - social
   - productivity

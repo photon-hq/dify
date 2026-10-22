@@ -18,6 +18,9 @@ resource:
 plugins:
   tools:
     - provider/photon.yaml
+tags:
+  - social
+  - productivity
 meta:
   version: 0.0.1
   arch:
