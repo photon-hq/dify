@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Packs the committed plugin for one release channel without changing tracked files.
-# RELEASE_CHANNEL is staging or production. RELEASE_SUFFIX, for example -staging12, is appended
-# to manifest.yaml's version; Dify versions take one suffix without dots, of at most 16 characters.
+# RELEASE_CHANNEL is staging or production. RELEASE_SUFFIX, for example -dev12, is appended
+# to manifest.yaml's version. Dify versions take one suffix without dots, of at most 16 characters,
+# that Python's version rules (PEP 440) also accept, because Dify's API checks them: -dev12, not -staging12.
 # The staging build defaults to Photon's staging API. DIFY_CLI is the Dify plugin CLI, and the
 # package is written to PACK_DESTINATION.
 set -euo pipefail

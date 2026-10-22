@@ -1,7 +1,7 @@
 name: Publish staging
 
 # Every push to main is tested and packed once by ci.yml. The staging build,
-# X.Y.Z-staging<run number>, and the production candidate, X.Y.Z, go on a GitHub
+# X.Y.Z-dev<run number>, and the production candidate, X.Y.Z, go on a GitHub
 # prerelease dify-staging-<staging version>, with their SHA-256s and the source
 # commit in release-manifest.json. promote.yml publishes that candidate; nothing
 # is rebuilt.
@@ -37,7 +37,7 @@ jobs:
         run: |
           for file in dist/photon-*.difypkg; do
             case "$file" in
-              *-staging*) staging=${file#dist/} ;;
+              *-dev*) staging=${file#dist/} ;;
               *) production=${file#dist/} ;;
             esac
           done

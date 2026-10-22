@@ -2,7 +2,7 @@ name: Promote to production
 
 # Publishes a staging build's stored production candidate, unchanged, as the
 # vX.Y.Z release on its source commit. Run it by hand, for example:
-# gh workflow run promote.yml -f staging-version=0.1.0-staging12
+# gh workflow run promote.yml -f staging-version=0.1.0-dev12
 on:
   workflow_dispatch:
     inputs:
