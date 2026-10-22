@@ -60,7 +60,7 @@ To start a conversation with someone new, get their user with `create_or_get_use
 {"platform": "sms", "participant_ids": "pho_usr_<agent>,pho_usr_<person>"}
 ```
 
-- `participant_ids` must include one of the project's agents, the one that will send: the `receivedBy.id` of a message received on that line, or the user `create_or_get_user` returns for the line's own number (`kind: agent`). On iMessage, put the agent first.
+- `participant_ids` must include one of the project's agents, the one that will send: the `receivedBy.id` of a message received on that line, or the user `create_or_get_user` returns for the line's own number (`kind: agent`). On iMessage, put the agent first. A new iMessage space needs one of the project's dedicated lines; a shared line only returns the existing direct space with a person assigned to the project on that line.
 - A known handle returns its existing user, and direct spaces and SMS groups with the same participants return the existing space. On email, each new `idempotency_key` starts a new thread.
 
 Lists return Photon's page: `items`, and `nextPageToken` when there are more. To get the next page, pass it as `page_token` with the same filters. To list one space's messages, pass `space_id` with `perspective_user_id`, the project's agent user in that space; Photon then does not accept `platform`, `created_since` or `created_before`.

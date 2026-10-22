@@ -6,9 +6,9 @@ identity:
     zh_Hans: 创建或获取会话
 description:
   human:
-    en_US: Create or get a space (conversation) on one platform for the given users, then send into it with send_message. Include the project's agent user that will send, for example a received message's receivedBy.id or create_or_get_user for the line's own number, and the people, for example from create_or_get_user. Direct spaces and SMS groups with the same participants return the existing space; on email, each new idempotency_key starts a new thread. Photon does not offer this on Telegram.
-    zh_Hans: 在一个渠道上为指定用户创建或获取会话（space），之后用 send_message 向其中发送。参与者要包括负责发送的项目代理用户（例如收到的消息的 receivedBy.id，或用 create_or_get_user 查询该号码本身得到的用户），以及联系人（例如 create_or_get_user 返回的用户）。参与者相同的单聊和短信群聊会返回已有会话；电子邮件中，每个新的 idempotency_key 都会开启一个新线程。Photon 在 Telegram 上不提供此操作。
-  llm: Create or get a space (conversation) on one platform for the given users, then send into it with send_message. Include the project's agent user that will send, for example a received message's receivedBy.id or create_or_get_user for the line's own number, and the people, for example from create_or_get_user. Direct spaces and SMS groups with the same participants return the existing space; on email, each new idempotency_key starts a new thread. Photon does not offer this on Telegram.
+    en_US: Create or get a space (conversation) on one platform for the given users, then send into it with send_message. Include the project's agent user that will send, for example a received message's receivedBy.id or create_or_get_user for the line's own number, and the people, for example from create_or_get_user. Direct spaces and SMS groups with the same participants return the existing space; on email, each new idempotency_key starts a new thread. On iMessage, only a dedicated line creates a new space; a shared line returns an existing direct space. Photon does not offer this on Telegram.
+    zh_Hans: 在一个渠道上为指定用户创建或获取会话（space），之后用 send_message 向其中发送。参与者要包括负责发送的项目代理用户（例如收到的消息的 receivedBy.id，或用 create_or_get_user 查询该号码本身得到的用户），以及联系人（例如 create_or_get_user 返回的用户）。参与者相同的单聊和短信群聊会返回已有会话；电子邮件中，每个新的 idempotency_key 都会开启一个新线程。在 iMessage 上，只有专属号码能新建会话，共享号码只会返回已有的单聊。Photon 在 Telegram 上不提供此操作。
+  llm: Create or get a space (conversation) on one platform for the given users, then send into it with send_message. Include the project's agent user that will send, for example a received message's receivedBy.id or create_or_get_user for the line's own number, and the people, for example from create_or_get_user. Direct spaces and SMS groups with the same participants return the existing space; on email, each new idempotency_key starts a new thread. On iMessage, only a dedicated line creates a new space; a shared line returns an existing direct space. Photon does not offer this on Telegram.
 parameters:
 - name: platform
   type: select
@@ -53,9 +53,9 @@ parameters:
     en_US: Participant IDs
     zh_Hans: 参与者 ID
   human_description:
-    en_US: Comma-separated Photon user IDs (pho_usr_…) on this platform, including one of the project's agents. On iMessage, put the agent first.
-    zh_Hans: 以英文逗号分隔的该渠道 Photon 用户 ID（pho_usr_…），其中须包含一个项目代理用户。在 iMessage 上，请把代理用户放在第一位。
-  llm_description: Comma-separated Photon user IDs (pho_usr_…) on this platform, including one of the project's agents. On iMessage, put the agent first.
+    en_US: Comma-separated Photon user IDs (pho_usr_…) on this platform, including one of the project's agents. On iMessage, put the agent first; a new space needs a dedicated line, and a shared line only returns the existing direct space with a person assigned to the project on it.
+    zh_Hans: 以英文逗号分隔的该渠道 Photon 用户 ID（pho_usr_…），其中须包含一个项目代理用户。在 iMessage 上，请把代理用户放在第一位；新建会话需要专属号码，共享号码只会返回与已分配给本项目的联系人的已有单聊。
+  llm_description: Comma-separated Photon user IDs (pho_usr_…) on this platform, including one of the project's agents. On iMessage, put the agent first; a new space needs a dedicated line, and a shared line only returns the existing direct space with a person assigned to the project on it.
   form: llm
 - name: idempotency_key
   type: string

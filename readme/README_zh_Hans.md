@@ -60,7 +60,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 {"platform": "sms", "participant_ids": "pho_usr_<代理用户>,pho_usr_<联系人>"}
 ```
 
-- `participant_ids` 必须包含负责发送的项目代理用户：该号码上收到的消息的 `receivedBy.id`，或用 `create_or_get_user` 查询该号码本身得到的用户（`kind: agent`）。在 iMessage 上，请把代理用户放在第一位。
+- `participant_ids` 必须包含负责发送的项目代理用户：该号码上收到的消息的 `receivedBy.id`，或用 `create_or_get_user` 查询该号码本身得到的用户（`kind: agent`）。在 iMessage 上，请把代理用户放在第一位。新建 iMessage 会话需要项目的专属号码；共享号码只会返回与已分配给本项目的联系人的已有单聊。
 - Photon 已有的联系方式会返回已有的用户；参与者相同的单聊和短信群聊会返回已有会话。电子邮件中，每个新的 `idempotency_key` 都会开启一个新线程。
 
 列表工具返回 Photon 的分页结果：`items`，还有更多结果时另有 `nextPageToken`。要获取下一页，把它作为 `page_token` 传入，其他筛选条件保持不变。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
