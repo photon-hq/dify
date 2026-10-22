@@ -386,6 +386,19 @@ class ToolTests(unittest.TestCase):
             "Cannot reach Photon at https://api.photon.codes, or the request timed out.",
         )
 
+    def test_results_keep_photons_field_names(self):
+        space = {
+            **chat(OTHER_SPACE, "email"),
+            "details": {
+                "latestAddressing": {
+                    "from": {"address": "person@example.com"},
+                    "sourceMessageId": MESSAGE,
+                }
+            },
+        }
+        self.queue({"items": [space]})
+        self.assertEqual(self.invoke("list_spaces", {"platform": "email"}), {"items": [space]})
+
     def test_list_spaces_passes_filters_and_returns_photons_page(self):
         page = {"items": [chat(), chat(OTHER_SPACE, "telegram")], "nextPageToken": CURSOR}
         self.queue(page)

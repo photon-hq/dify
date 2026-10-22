@@ -127,7 +127,10 @@ class PhotonClient:
             ) from None
         except ClientError as error:
             raise UnknownOutcome(f"{error}.") from None
-        return result if isinstance(result, bytes) else result.model_dump(mode="json")
+        if isinstance(result, bytes):
+            return result
+        # Photon's field names, such as an email address's from, not the client's Python names.
+        return result.model_dump(mode="json", by_alias=True)
 
     def upload_attachment(
         self, data: bytes, content_type: str, filename: str | None, idempotency: str
