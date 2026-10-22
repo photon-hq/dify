@@ -47,7 +47,7 @@ settings:
     en_US: App
     zh_Hans: 应用
   help:
-    en_US: The Chatflow, Chatbot, or Agent app that answers the messages.
-    zh_Hans: 用来回复消息的 Chatflow、聊天助手或 Agent 应用。
+    en_US: The Chatflow or Chatbot app that answers the messages.
+    zh_Hans: 用来回复消息的 Chatflow 或聊天助手应用。
 endpoints:
 - endpoints/photon_bot.yaml

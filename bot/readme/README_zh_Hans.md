@@ -1,6 +1,6 @@
 # Photon Dify 机器人
 
-通过 [Photon](https://photon.codes) 的消息 API，用 Dify 的 Chatflow、聊天助手或 Agent 应用回复 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的消息。
+通过 [Photon](https://photon.codes) 的消息 API，用 Dify 的 Chatflow 或聊天助手应用回复 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的消息。
 
 Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的*代理用户*（agent）。项目收到消息时，Photon 会向本插件的 API 端点推送一条带签名的 `message.received` webhook。插件把消息的文字交给端点设置中选择的应用，再以收到这条消息的代理用户的身份，把应用的回答发回同一个会话。每个会话对应一个 Dify 对话，所以应用回答时会参考该会话之前的消息。
 
@@ -15,7 +15,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 | `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。用于发送回复。 |
 | `signing_secret` | 否 | 第 5 步之前留空。 |
-| `app` | 是 | 负责回答的 Chatflow、聊天助手或 Agent 应用。在这里设置的输入会随每条消息传给应用。 |
+| `app` | 是 | 负责回答的 Chatflow 或聊天助手应用。在这里设置的输入会随每条消息传给应用。 |
 
 4. 复制 Dify 显示的端点地址（以 `/` 结尾），在 Photon 项目中为它创建一个推送地址（webhook destination），订阅 `message.received`，API 版本为 `2026-07-01`。请完全按 Dify 显示的地址填写：Photon 不会跟随重定向。使用 Photon 的 Create webhook destination：
 
@@ -71,7 +71,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，请把 `ENDP
 
 幂等键为 `pho_msg_A.reply`，由收到的消息生成，所以 Photon 对每条消息最多只发送一条回复。
 
-- 只回答文字内容（`content.type: text`）的 `message.received`。其他事件、其他内容（图片、语音、表情回应等），以及项目代理用户发出的消息，都只确认收到、不回答；最后一条可以避免项目的代理用户互相回复。
+- 只回答文字内容（`content.type: text`）的 `message.received`。其他事件、其他内容（图片、语音、表情回应等），项目代理用户发出的消息，以及没有 `receivedBy` 的消息，都只确认收到、不回答。跳过代理用户发出的消息，可以避免它们互相回复；回复要以 `receivedBy` 的身份发出。
 - 应用回答的文字为空时，不发送任何内容。
 - 每次推送都会先校验 Photon 的签名，再做其他处理：按 Standard Webhooks 规范，对推送的 ID、时间戳和正文做 HMAC-SHA256 签名，且时间戳须在 5 分钟以内。校验失败的推送返回 HTTP 401，不会触发任何处理。
 
@@ -80,7 +80,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，请把 `ENDP
 Photon 每次推送最多等待 20 秒，推送超时或失败时会重试；在这次推送结束之前，该推送地址后续的消息都要等待。插件在响应之前调用应用并发送回答，因此：
 
 - 应用回答超过 20 秒时，回答可能发不出去。
-- 每条消息最多回答一次。Photon 在超时或出错后再次推送同一条消息时，插件只确认收到，不会再次调用应用。应用调用或回复失败的消息不会得到回复。
+- 每条消息最多回答一次。Photon 在超时或出错后再次推送同一条消息时，插件只确认收到，不会再次调用应用。应用调用或回复失败的消息不会得到回复；应用调用失败后，该会话的下一条消息会开启新的 Dify 对话。
 
 ## 网络连接要求
 
@@ -90,7 +90,7 @@ Photon 每次推送最多等待 20 秒，推送超时或失败时会重试；在
 
 - 只回答文字，回复为纯文本。
 - 端点会回答其推送地址推送的所有文字消息，涵盖项目的所有渠道和号码。
-- 在 Dify 1.17.1 中，插件无法调用 Dify 新版 Agent 运行时的应用（应用模式为 `agent`），Dify 会以 `unexpected app type` 拒绝。Chatflow、聊天助手和 Agent（`agent-chat`）应用可以调用。
+- Agent 应用无法回答。Dify 1.17.1 会拒绝插件对 Agent 应用（`agent-chat`）的阻塞调用，也会以 `unexpected app type` 拒绝新版 Agent 运行时的应用（应用模式为 `agent`）。需要用工具时，请在 Chatflow 中添加工具节点或 Agent 节点。
 - 如果在 Photon 中轮换了推送地址的签名密钥，请在旧密钥失效前把新密钥保存到端点。
 
 ## 隐私
