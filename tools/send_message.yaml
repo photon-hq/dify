@@ -72,7 +72,7 @@ parameters:
     zh_Hans: 发送者 ID
   human_description:
     en_US: The project's agent user (pho_usr_) that sends in this space, for example the receivedBy.id of a message received in it, or the sentBy.id of one sent from it.
-    zh_Hans: 在该会话中发送消息的项目代理用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id，或从该会话发出的消息的 sentBy.id。
+    zh_Hans: 在该会话中发送消息的项目 agent 用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id，或从该会话发出的消息的 sentBy.id。
   llm_description: The project's agent user (pho_usr_) that sends in this space, for example the receivedBy.id of a message received in it, or the sentBy.id of one sent from it.
   form: llm
 - name: parent_message_id

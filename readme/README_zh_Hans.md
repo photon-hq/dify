@@ -13,7 +13,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 | `create_or_get_space` | 返回指定用户在一个渠道上的会话，没有时新建。 |
 | `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 |
 | `get_message` | 获取一条消息及其发送者、内容和投递状态。 |
-| `get_user` | 获取一个用户的联系方式，以及它是代理用户（Photon 托管的号码或账号）还是普通联系人。 |
+| `get_user` | 获取一个用户的联系方式，以及它是 agent 用户（Photon 托管的号码或账号）还是普通联系人。 |
 | `create_or_get_user` | 返回一个渠道上某个电话号码或电子邮箱对应的用户，Photon 还没有时新建。 |
 | `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 |
 
@@ -47,7 +47,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 ```
 
 - 多张图片，或图片加文字，会作为一条 `group` 消息发送：文字在前，图片按顺序在后。每张图片会先上传到 Photon，再发送消息。
-- `sender_id` 是该会话中项目的代理用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 区分代理用户（`kind: agent`）和普通联系人；本项目的专属号码带 `details.resourceId`。
+- `sender_id` 是该会话中项目的 agent 用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 区分 agent 用户（`kind: agent`）和普通联系人；本项目的专属号码带 `details.resourceId`。
 - `parent_message_id`（回复）和 `email_subject` 是可选的。
 - 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。
 - 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
@@ -57,13 +57,13 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 ```json
 {"platform": "sms", "handle": "+14155550123"}
-{"platform": "sms", "participant_ids": "pho_usr_<代理用户>,pho_usr_<联系人>"}
+{"platform": "sms", "participant_ids": "pho_usr_<agent 用户>,pho_usr_<联系人>"}
 ```
 
-- `participant_ids` 必须包含负责发送的项目代理用户：该号码上收到的消息的 `receivedBy.id`，或用 `create_or_get_user` 查询该号码本身得到的用户（`kind: agent`）。在 iMessage 上，请把代理用户放在第一位。新建 iMessage 会话需要项目的专属号码；共享号码只会返回与已分配给本项目的联系人的已有单聊。
+- `participant_ids` 必须包含负责发送的项目 agent 用户：该号码上收到的消息的 `receivedBy.id`，或用 `create_or_get_user` 查询该号码本身得到的用户（`kind: agent`）。在 iMessage 上，请把 agent 用户放在第一位。新建 iMessage 会话需要项目的专属号码；共享号码只会返回与已分配给本项目的联系人的已有单聊。
 - Photon 已有的联系方式会返回已有的用户；参与者相同的单聊和短信群聊会返回已有会话。电子邮件中，每个新的 `idempotency_key` 都会开启一个新线程。
 
-列表工具返回 Photon 的分页结果：`items`，还有更多结果时另有 `nextPageToken`。要获取下一页，把它作为 `page_token` 传入，其他筛选条件保持不变。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的代理用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
+列表工具返回 Photon 的分页结果：`items`，还有更多结果时另有 `nextPageToken`。要获取下一页，把它作为 `page_token` 传入，其他筛选条件保持不变。要查看单个会话的消息，请同时传入 `space_id` 和 `perspective_user_id`（该会话中项目所属的 agent 用户）；此时 Photon 不接受 `platform`、`created_since` 和 `created_before`。
 
 结果就是 API 返回的 Photon 原始对象。消息包含 `id`、`platform`、`space`、`sentBy`、Photon 记录到的 `receivedBy`、`content`、`parentMessageId`、`status`、`timestamps`，以及适用时的 `acceptance` 或 `failure`；文字消息的正文在 `content.text`。结果的每个顶层字段都会同时作为同名输出变量。
 

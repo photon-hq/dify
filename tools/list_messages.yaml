@@ -7,7 +7,7 @@ identity:
 description:
   human:
     en_US: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
-    zh_Hans: 分页查看所有渠道或单个渠道的消息（默认从新到旧），或用 space_id 加 perspective_user_id 查看单个会话的消息。每条消息都包含所属会话、发送者（sentBy），以及 Photon 记录到的接收者（receivedBy）；收到的消息里，receivedBy 就是项目的代理用户。
+    zh_Hans: 分页查看所有渠道或单个渠道的消息（默认从新到旧），或用 space_id 加 perspective_user_id 查看单个会话的消息。每条消息都包含所属会话、发送者（sentBy），以及 Photon 记录到的接收者（receivedBy）；收到的消息里，receivedBy 就是项目的 agent 用户。
   llm: List one page of messages, newest first by default, across all channels or one platform, or one space's messages with space_id and perspective_user_id. Each message shows its space, who sent it (sentBy) and, when Photon records it, who received it (receivedBy); on a received message, receivedBy is the project's agent.
 parameters:
 - name: platform
@@ -65,7 +65,7 @@ parameters:
     zh_Hans: 视角用户 ID
   human_description:
     en_US: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
-    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的代理用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id；Photon 会列出这个用户发送和接收的消息。
+    zh_Hans: 与 space_id 一起使用，填该会话中项目所属的 agent 用户 ID（pho_usr_），例如该会话中收到的消息的 receivedBy.id；Photon 会列出这个用户发送和接收的消息。
   llm_description: With space_id, the project's agent user (pho_usr_) in that space, for example the receivedBy.id of a message received in it; Photon lists the messages it sent and received.
   form: llm
 - name: direction
