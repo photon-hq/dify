@@ -68,7 +68,11 @@ class PhotonBotEndpoint(Endpoint):
         if delivery["type"] != "message.received":
             return Response(status=200)
         message = delivery["data"]["object"]
-        if message["content"]["type"] != "text" or message["sentBy"]["kind"] == "agent":
+        if (
+            message["content"]["type"] != "text"
+            or message["sentBy"]["kind"] == "agent"
+            or "receivedBy" not in message
+        ):
             return Response(status=200)
         app = settings["app"]
         key = f"{app['app_id']}:{message['space']['id']}"
@@ -77,6 +81,9 @@ class PhotonBotEndpoint(Endpoint):
         # Photon delivers a message again after a timeout or an error; answer it only once.
         if state.get("message_id") == message["id"]:
             return Response(status=200)
+        # Keep no conversation until the app answers: a Chatbot app fails every call with a
+        # conversation it no longer has, so after a failed call the next message starts a new one.
+        conversation_id = state.pop("conversation_id", None)
         state["message_id"] = message["id"]
         storage.set(key, json.dumps(state).encode())
         result = self.session.app.chat.invoke(
@@ -84,11 +91,10 @@ class PhotonBotEndpoint(Endpoint):
             query=message["content"]["text"],
             inputs=app.get("inputs", {}),
             response_mode="blocking",
-            conversation_id=state.get("conversation_id"),
+            conversation_id=conversation_id,
         )
-        if result["conversation_id"] != state.get("conversation_id"):
-            state["conversation_id"] = result["conversation_id"]
-            storage.set(key, json.dumps(state).encode())
+        state["conversation_id"] = result["conversation_id"]
+        storage.set(key, json.dumps(state).encode())
         if result["answer"]:
             send_reply(settings, delivery["data"]["projectId"], message, result["answer"])
         return Response(status=200)

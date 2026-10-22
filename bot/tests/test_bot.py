@@ -208,11 +208,14 @@ class BotTests(unittest.TestCase):
         self.assertEqual((self.storage, self.app_calls, self.calls), ({}, [], []))
 
     def test_other_events_contents_and_agent_senders_are_acknowledged_without_an_answer(self):
+        without_receiver = delivery()
+        del without_receiver["data"]["object"]["receivedBy"]
         cases = {
             "another event": delivery("message.delivered", status="delivered"),
             "an event without a message": {"type": "space.updated", "data": {}},
             "an image": delivery(content={"type": "attachment", "attachmentId": "pho_att_1"}),
             "a message from an agent": delivery(sender=user(AGENT, "agent", "photon_test_bot")),
+            "a message without receivedBy": without_receiver,
         }
         for name, payload in cases.items():
             with self.subTest(case=name):
@@ -334,6 +337,28 @@ class BotTests(unittest.TestCase):
         self.assertEqual(self.deliver(delivery()), (200, ""))
         self.assertEqual((len(self.app_calls), self.calls), (1, []))
         self.assertEqual(self.stored(), {f"{APP}:{SPACE}": {"message_id": MESSAGE}})
+
+    def test_after_a_failed_app_call_the_next_message_starts_a_new_conversation(self):
+        third = "pho_msg_00000000000000000000000004"
+        self.answers.extend(
+            [
+                answer(),
+                Exception("Conversation Not Exists."),
+                answer(conversation=OTHER_CONVERSATION),
+            ]
+        )
+        self.queue(sent())
+        self.queue(sent())
+        self.assertEqual(self.deliver(delivery()), (200, ""))
+        self.assertEqual(self.deliver(delivery(message_id=OTHER_MESSAGE, text="And?"))[0], 500)
+        self.assertEqual(self.deliver(delivery(message_id=third, text="Hello?")), (200, ""))
+        self.assertEqual(
+            [call["conversation_id"] for call in self.app_calls], [None, CONVERSATION, None]
+        )
+        self.assertEqual(
+            self.stored(),
+            {f"{APP}:{SPACE}": {"message_id": third, "conversation_id": OTHER_CONVERSATION}},
+        )
 
     def test_an_empty_answer_keeps_the_conversation_and_sends_nothing(self):
         self.answers.append(answer(""))
