@@ -91,7 +91,7 @@ The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` 
 - Only text is answered, and replies are plain text.
 - The endpoint answers every text message its destination delivers, on every platform and line of the project.
 - Agent apps cannot answer. Dify 1.17.1 rejects the plugin's blocking call to an Agent app (`agent-chat`), and rejects apps of its newer Agent runtime (app mode `agent`) as `unexpected app type`. To use tools, add tool or Agent nodes to a Chatflow.
-- If a space's conversation is deleted in Dify, a Chatbot app fails every later message in that space, because Dify cannot find the conversation; a Chatflow starts a new one.
+- In Dify 1.17.1, if a space's conversation is deleted, a Chatbot app fails every later message in that space, because Dify cannot find the conversation; a Chatflow starts a new one.
 - If the destination's signing secret is rotated in Photon, save the new secret in the endpoint before the old one expires.
 
 ## Privacy
