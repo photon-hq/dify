@@ -1,26 +1,26 @@
 # Photon for Dify
 
-Send and read messages on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram from Dify workflows, chatflows, and agents, through [Photon](https://photon.codes)'s messaging API.
+Send and read messages on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram from Dify workflows, chatflows, and agents, through [Photon](https://photon.codes)'s messaging API ([API reference](https://photon.codes/docs/beta/api-reference)).
 
 Photon calls a conversation a *space*. Each space belongs to one platform (`imessage`, `sms`, `whatsapp`, `whatsapp_business`, `email`, or `telegram`), and a message sent into a space goes out on that platform, so the same tools work for every channel.
 
 ## Tools
 
-| Tool | What it does |
-|---|---|
-| `send_message` | Sends text (`type: text`) or JPEG, PNG, GIF, or WebP images of up to 10 MB each (`type: attachment`) into an existing space. |
-| `list_spaces` | Lists spaces, optionally for one platform or participant. |
-| `create_or_get_space` | Returns the space for the given users on one platform, creating it if needed. |
-| `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. |
-| `get_message` | Returns one message with its sender, content, and delivery status. |
-| `get_user` | Returns one user's handle, and whether it is an agent (a line or account Photon manages) or a person. |
-| `create_or_get_user` | Returns the user for a phone number or email address on one platform, creating it if Photon does not know it yet. |
-| `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. |
+| Tool | What it does | Photon API |
+|---|---|---|
+| `send_message` | Sends text (`type: text`) or JPEG, PNG, GIF, or WebP images of up to 10 MB each (`type: attachment`) into an existing space. | [Upload attachment](https://photon.codes/docs/beta/api-reference/attachments/upload-attachment), [Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message) |
+| `list_spaces` | Lists spaces, optionally for one platform or participant. | [List Spaces](https://photon.codes/docs/beta/api-reference/spaces/list-spaces) |
+| `create_or_get_space` | Returns the space for the given users on one platform, creating it if needed. | [Create or get a Space](https://photon.codes/docs/beta/api-reference/spaces/create-or-get-a-space) |
+| `list_messages` | Lists messages by platform, direction, and creation time, or one space's messages. | [List Messages](https://photon.codes/docs/beta/api-reference/messages/list-messages) |
+| `get_message` | Returns one message with its sender, content, and delivery status. | [Get a Message](https://photon.codes/docs/beta/api-reference/messages/get-a-message) |
+| `get_user` | Returns one user's handle, and whether it is an agent (a line or account Photon manages) or a person. | [Get an User](https://photon.codes/docs/beta/api-reference/users/get-an-user) |
+| `create_or_get_user` | Returns the user for a phone number or email address on one platform, creating it if Photon does not know it yet. | [Create or get a User](https://photon.codes/docs/beta/api-reference/users/create-or-get-a-user) |
+| `get_attachment` | Returns an attachment's metadata, and its file as a Dify file. | [Get attachment](https://photon.codes/docs/beta/api-reference/attachments/get-attachment), [Download attachment](https://photon.codes/docs/beta/api-reference/attachments/download-attachment) |
 
 ## Setup
 
-1. In your Photon project, connect the channels you will use. The plugin does not connect channels.
-2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`), and copy the project ID (`pho_prj_`).
+1. In your Photon project, connect the channels you will use ([Messaging](https://photon.codes/docs/beta/messaging)). The plugin does not connect channels.
+2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`), and copy the project ID (`pho_prj_`) ([Set up your project](https://photon.codes/docs/beta/get-started/project)).
 3. Install **Photon** from the Dify Marketplace, then authorize it under **Tools > Photon**:
 
 | Credential | Required | Value |
@@ -50,7 +50,7 @@ Send text, or images with optional text:
 - `sender_id` is the project's agent user in the space: the `receivedBy.id` of a message received in it, or the `sentBy.id` of one sent from it. `get_user` tells agents (`kind: agent`) from people; this project's dedicated lines have `details.resourceId`.
 - `parent_message_id` (reply) and `email_subject` are optional.
 - `format` is `plain` (the default) or `markdown`, which is CommonMark with GFM tables and strikethrough. Photon renders Markdown with the channel's own formatting where the channel has it, for example on Telegram, and as readable plain text elsewhere; it rejects HTML in Markdown.
-- Photon decides what each channel accepts. When it rejects a send, the error keeps Photon's status, code and reason, for example `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`.
+- Photon decides what each channel accepts. When it rejects a send, the error keeps Photon's status, code and reason, for example `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`. Photon's [problem catalog](https://photon.codes/docs/beta/problems/catalog) lists the codes.
 - Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later: `delivered` confirms delivery, `accepted` means the channel took the message without confirming delivery (`acceptance.code` says why), and `failed` carries `failure`.
 - Reuse the same `idempotency_key` to retry a send safely. If you omit it, the plugin generates one and returns it in the result, and in the error if the send fails.
 

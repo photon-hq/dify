@@ -1,6 +1,6 @@
 # Photon Trigger for Dify
 
-Start Dify workflows when a message arrives over iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram, through [Photon](https://photon.codes)'s messaging API.
+Start Dify workflows when a message arrives over iMessage, SMS, WhatsApp, WhatsApp Business, email, or Telegram, through [Photon](https://photon.codes)'s messaging API ([API reference](https://photon.codes/docs/beta/api-reference)).
 
 Photon calls a conversation a *space*. Each space belongs to one platform, and the project's own phone numbers, bots, and email accounts are its *agent* users. When the project receives a message, Photon delivers a signed `message.received` webhook, and this plugin starts the workflows that use its event. To reply, use the [Photon plugin](https://github.com/photon-hq/dify)'s `send_message`.
 
@@ -12,8 +12,8 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 
 ## Setup
 
-1. In your Photon project, connect the channels you will use. The plugin does not connect channels.
-2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`) that can manage the project's webhook destinations, and copy the project ID (`pho_prj_`).
+1. In your Photon project, connect the channels you will use ([Messaging](https://photon.codes/docs/beta/messaging)). The plugin does not connect channels.
+2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`) that can manage the project's webhook destinations, and copy the project ID (`pho_prj_`) ([Set up your project](https://photon.codes/docs/beta/get-started/project)).
 3. Install **Photon Trigger**, add its **Message received** event as a workflow's start node, and create a subscription with:
 
 | Credential | Required | Value |
@@ -22,7 +22,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
 
-Creating the subscription creates a Photon webhook destination for the subscription's Dify endpoint, subscribed to `message.received`, and Dify keeps the destination's signing secret with the subscription. Deleting the subscription deletes the destination.
+Creating the subscription creates a Photon webhook destination for the subscription's Dify endpoint ([Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)), subscribed to `message.received`, and Dify keeps the destination's signing secret with the subscription. Deleting the subscription deletes the destination ([Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)).
 
 Photon delivers only to public HTTPS URLs. On self-hosted Dify, set `TRIGGER_URL` to the public HTTPS address of your Dify API before creating the subscription, because Dify builds the endpoint from it.
 
@@ -50,7 +50,7 @@ Every delivery is checked against Photon's signature before a workflow starts: t
 
 ## Connection requirements
 
-The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to check the key and to create and delete the webhook destination. Photon sends deliveries to the subscription's Dify endpoint.
+The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to check the key ([List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)) and to create and delete the webhook destination ([Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination), [Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)). Photon sends deliveries to the subscription's Dify endpoint.
 
 ## Limitations
 

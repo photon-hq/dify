@@ -1,13 +1,13 @@
 # Photon Dify 机器人
 
-通过 [Photon](https://photon.codes) 的消息 API，用 Dify 的 Chatflow 或聊天助手应用回复 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的消息。
+通过 [Photon](https://photon.codes) 的消息 API（[API 参考](https://photon.codes/docs/beta/api-reference)），用 Dify 的 Chatflow 或聊天助手应用回复 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 上的消息。
 
 Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的 *agent 用户*。项目收到消息时，Photon 会向本插件的 API 端点推送一条带签名的 `message.received` webhook。插件把消息的文字交给端点设置中选择的应用，再以收到这条消息的 agent 用户的身份，把应用的回答发回同一个会话。每个会话对应一个 Dify 对话，所以应用回答时会参考该会话之前的消息。
 
 ## 配置
 
-1. 在 Photon 项目中连接要使用的渠道。插件不会连接渠道。
-2. 创建能在该项目中发送消息的 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`）。
+1. 在 Photon 项目中连接要使用的渠道（[Messaging](https://photon.codes/docs/beta/messaging)）。插件不会连接渠道。
+2. 创建能在该项目中发送消息的 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`）（[Set up your project](https://photon.codes/docs/beta/get-started/project)）。
 3. 安装 **Photon 机器人**，并为它添加一个 API 端点，设置如下：
 
 | 设置 | 是否必填 | 取值 |
@@ -17,7 +17,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 | `signing_secret` | 否 | 第 5 步之前留空。 |
 | `app` | 是 | 负责回答的 Chatflow 或聊天助手应用。在这里设置的输入会随每条消息传给应用。 |
 
-4. 复制 Dify 显示的端点地址（以 `/` 结尾），在 Photon 项目中为它创建一个推送地址（webhook destination），订阅 `message.received`，API 版本为 `2026-07-01`。请完全按 Dify 显示的地址填写：Photon 不会跟随重定向。使用 Photon 的 Create webhook destination：
+4. 复制 Dify 显示的端点地址（以 `/` 结尾），在 Photon 项目中为它创建一个推送地址（webhook destination），订阅 `message.received`，API 版本为 `2026-07-01`。请完全按 Dify 显示的地址填写：Photon 不会跟随重定向。使用 Photon 的 [Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)：
 
 ```http
 POST https://api.photon.codes/v1/projects/pho_prj_…/webhooks/destinations
@@ -59,7 +59,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，请把 `ENDP
 }
 ```
 
-插件把文字作为 query 发给应用，放在它为 `pho_spc_S` 和该应用保存的对话中；会话的第一条消息会开启新对话。然后用 Photon 的 Send a Message 发送应用的回答：
+插件把文字作为 query 发给应用，放在它为 `pho_spc_S` 和该应用保存的对话中；会话的第一条消息会开启新对话。然后用 Photon 的 [Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message) 发送应用的回答：
 
 ```json
 {
@@ -84,7 +84,7 @@ Photon 每次推送最多等待 20 秒，推送超时或失败时会重试；在
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求以发送回复，并通过 Dify 调用所选应用。Photon 会把推送发到端点地址。
+插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求以发送回复（[Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)），并通过 Dify 调用所选应用。Photon 会把推送发到端点地址。
 
 ## 限制
 
