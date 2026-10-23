@@ -49,6 +49,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 - 多张图片，或图片加文字，会作为一条 `group` 消息发送：文字在前，图片按顺序在后。每张图片会先上传到 Photon，再发送消息。
 - `sender_id` 是该会话中项目的 agent 用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 区分 agent 用户（`kind: agent`）和普通联系人；本项目的专属号码带 `details.resourceId`。
 - `parent_message_id`（回复）和 `email_subject` 是可选的。
+- `format` 可选 `plain`（默认）或 `markdown`，即 CommonMark，以及 GFM 的表格和删除线。渠道支持格式时（例如 Telegram），Photon 用该渠道自己的格式显示 Markdown，不支持时转成易读的纯文本；Markdown 中不能包含 HTML。
 - 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。
 - 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。

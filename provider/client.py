@@ -24,6 +24,7 @@ from photon_api.rpc_generated import (
 from pydantic import ValidationError
 
 SEND_TYPES = ("text", "attachment")
+TEXT_FORMATS = ("plain", "markdown")
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024

@@ -10,6 +10,7 @@ from provider.client import (
     IMAGE_TYPES,
     MAX_IMAGE_BYTES,
     SEND_TYPES,
+    TEXT_FORMATS,
     PhotonClient,
     PhotonError,
     UnknownOutcome,
@@ -24,6 +25,9 @@ class SendMessageTool(Tool):
         if kind not in SEND_TYPES:
             raise PhotonError(f"type must be one of {', '.join(SEND_TYPES)}.")
         text = tool_parameters.get("text") or None
+        text_format = tool_parameters.get("format") or "plain"
+        if text_format not in TEXT_FORMATS:
+            raise PhotonError(f"format must be one of {', '.join(TEXT_FORMATS)}.")
         files = tool_parameters.get("attachments") or []
         if not isinstance(files, list):
             files = [files]
@@ -56,7 +60,7 @@ class SendMessageTool(Tool):
         if tool_parameters.get("email_subject"):
             body["email"] = {"subject": tool_parameters["email_subject"]}
         try:
-            parts = [] if text is None else [{"type": "text", "format": "plain", "text": text}]
+            parts = [] if text is None else [{"type": "text", "format": text_format, "text": text}]
             for index, (file, data) in enumerate(images):
                 upload_key = f"{hashlib.sha256(key.encode()).hexdigest()}.attachment.{index}"
                 attachment = client.upload_attachment(
