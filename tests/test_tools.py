@@ -317,6 +317,7 @@ class ToolTests(unittest.TestCase):
         self.download_bodies["https://dify.example/files/large.png"] = b"0" * (MAX_IMAGE_BYTES + 1)
         cases = [
             ({}, "type text requires text"),
+            ({"text": "Hi", "format": "html"}, "format must be one of plain, markdown"),
             ({"text": "Hi", "attachments": [image()]}, "type text does not take attachments"),
             ({"type": "attachment"}, "requires at least one image"),
             (

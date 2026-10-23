@@ -10,6 +10,7 @@ from provider.client import (
     IMAGE_TYPES,
     MAX_IMAGE_BYTES,
     SEND_TYPES,
+    TEXT_FORMATS,
     PhotonClient,
     PhotonError,
     UnknownOutcome,
@@ -25,6 +26,8 @@ class SendMessageTool(Tool):
             raise PhotonError(f"type must be one of {', '.join(SEND_TYPES)}.")
         text = tool_parameters.get("text") or None
         text_format = tool_parameters.get("format") or "plain"
+        if text_format not in TEXT_FORMATS:
+            raise PhotonError(f"format must be one of {', '.join(TEXT_FORMATS)}.")
         files = tool_parameters.get("attachments") or []
         if not isinstance(files, list):
             files = [files]
