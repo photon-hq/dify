@@ -70,9 +70,9 @@ parameters:
     en_US: Text
     zh_Hans: 消息文本
   human_description:
-    en_US: The message text, in the format that format names. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
+    en_US: The message text, in the chosen format. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
     zh_Hans: 消息文字，格式由 format 决定。type 为 text 时必填；type 为 attachment 时可选，会放在图片前面、与图片在同一条消息中发送。
-  llm_description: The message text, in the format that format names. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
+  llm_description: The message text, in the chosen format. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
   form: llm
 - name: attachments
   type: files
