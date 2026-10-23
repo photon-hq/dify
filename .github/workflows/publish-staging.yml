@@ -57,5 +57,5 @@ jobs:
             gh release upload "$tag" dist/*.difypkg dist/release-manifest.json --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$tag" dist/*.difypkg dist/release-manifest.json --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-              --prerelease --title "$tag" --notes "Staging build $staging, which defaults to Photon's staging API, and production candidate $production, from $GITHUB_SHA."
+              --prerelease --title "$tag" --notes "Staging build $staging and production candidate $production, from $GITHUB_SHA."
           fi

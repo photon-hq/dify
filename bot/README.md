@@ -12,7 +12,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 
 | Setting | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`, the default) or Staging (`https://api.staging.photon.codes`), matching your key. |
+| `api_origin` | Yes | Production (`https://api.photon.codes`) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. It sends the replies. |
 | `signing_secret` | No | Leave it empty until step 5. |
 | `app` | Yes | The Chatflow or Chatbot app that answers. Inputs set here are passed to the app with every message. |

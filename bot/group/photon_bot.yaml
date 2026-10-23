@@ -2,13 +2,12 @@ settings:
 - name: api_origin
   type: select
   required: true
-  default: https://api.photon.codes
   label:
     en_US: Photon environment
     zh_Hans: Photon 环境
   help:
-    en_US: Select Production or Staging to match your API key and project. Production is the default.
-    zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。默认使用生产环境。
+    en_US: Select Production or Staging to match your API key and project.
+    zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。
   options:
   - value: https://api.photon.codes
     label:

@@ -18,7 +18,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 
 | Credential | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`, the default) or Staging (`https://api.staging.photon.codes`), matching your key. |
+| `api_origin` | Yes | Production (`https://api.photon.codes`) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
 
@@ -37,6 +37,7 @@ To reply in the same space, pass these to the Photon plugin's `send_message`:
   "space_id": "<the event's space.id>",
   "sender_id": "<the event's receivedBy.id>",
   "type": "text",
+  "format": "plain",
   "text": "Thanks, we got your message.",
   "idempotency_key": "<the event's id>.reply"
 }

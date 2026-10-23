@@ -18,7 +18,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 
 | 凭据 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
+| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
 
@@ -37,6 +37,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
   "space_id": "<事件的 space.id>",
   "sender_id": "<事件的 receivedBy.id>",
   "type": "text",
+  "format": "plain",
   "text": "收到，我们会尽快回复您。",
   "idempotency_key": "<事件的 id>.reply"
 }

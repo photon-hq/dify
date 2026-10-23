@@ -12,7 +12,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 
 | 设置 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
+| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。用于发送回复。 |
 | `signing_secret` | 否 | 第 5 步之前留空。 |
 | `app` | 是 | 负责回答的 Chatflow 或聊天助手应用。在这里设置的输入会随每条消息传给应用。 |

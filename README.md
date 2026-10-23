@@ -25,7 +25,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 
 | Credential | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`, the default) or Staging (`https://api.staging.photon.codes`), matching your key. |
+| `api_origin` | Yes | Production (`https://api.photon.codes`) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
 
@@ -40,6 +40,7 @@ Send text, or images with optional text:
   "space_id": "pho_spc_…",
   "sender_id": "pho_usr_…",
   "type": "attachment",
+  "format": "plain",
   "attachments": ["<image files from a Dify file variable>"],
   "text": "Your order has shipped.",
   "idempotency_key": "order-1042-photos-v1"
@@ -49,7 +50,7 @@ Send text, or images with optional text:
 - Several images, or images with text, are sent as one `group` message: the text first, then the images in order. Each image is uploaded to Photon before the message.
 - `sender_id` is the project's agent user in the space: the `receivedBy.id` of a message received in it, or the `sentBy.id` of one sent from it. `get_user` tells agents (`kind: agent`) from people; this project's dedicated lines have `details.resourceId`.
 - `parent_message_id` (reply) and `email_subject` are optional.
-- `format` is `plain` (the default) or `markdown`, which is CommonMark with GFM tables and strikethrough. Photon renders Markdown with the channel's own formatting where the channel has it, for example on Telegram, and as readable plain text elsewhere; it rejects HTML in Markdown.
+- `type` and `format` are required and have no default. `format` is `plain`, which sends the text as written, or `markdown`, which is CommonMark with GFM tables and strikethrough. Photon renders Markdown with the channel's own formatting where the channel has it, for example on Telegram, and as readable plain text elsewhere; it rejects HTML in Markdown.
 - Photon decides what each channel accepts. When it rejects a send, the error keeps Photon's status, code and reason, for example `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`. Photon's [problem catalog](https://photon.codes/docs/beta/problems/catalog) lists the codes.
 - Sending is asynchronous: the result is usually `dispatched`. Call `get_message` later: `delivered` confirms delivery, `accepted` means the channel took the message without confirming delivery (`acceptance.code` says why), and `failed` carries `failure`.
 - Reuse the same `idempotency_key` to retry a send safely. If you omit it, the plugin generates one and returns it in the result, and in the error if the send fails.
@@ -98,7 +99,7 @@ python -m unittest discover -s tests
 
 The tests mock Photon and Dify's file downloads and never send messages.
 
-Every merge to `main` publishes a GitHub prerelease with a staging build, which defaults to Photon's staging API, and the production candidate. The production release is published by running the **Promote to production** workflow.
+Every merge to `main` publishes a GitHub prerelease with a staging build and the production candidate. The production release is published by running the **Promote to production** workflow.
 
 ## License
 
