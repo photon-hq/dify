@@ -286,6 +286,33 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(self.body()["content"], group)
         self.assertEqual(result["content"], group)
 
+    def test_send_markdown_alone_and_with_images(self):
+        self.queue(message(text="**Hello**"), status=202)
+        self.invoke(
+            "send_message",
+            {"space_id": SPACE, "sender_id": SENDER, "text": "**Hello**", "format": "markdown"},
+        )
+        self.assertEqual(
+            self.body()["content"], {"type": "text", "format": "markdown", "text": "**Hello**"}
+        )
+        self.queue(attachment(), status=201)
+        self.queue(message(), status=202)
+        self.invoke(
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "attachment",
+                "text": "**Photo**",
+                "format": "markdown",
+                "attachments": [image()],
+            },
+        )
+        self.assertEqual(
+            self.body()["content"]["parts"][0],
+            {"type": "text", "format": "markdown", "text": "**Photo**"},
+        )
+
     def test_send_rejects_invalid_combinations_and_files_before_any_request(self):
         self.download_bodies["https://dify.example/files/large.png"] = b"0" * (MAX_IMAGE_BYTES + 1)
         cases = [

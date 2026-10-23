@@ -49,10 +49,31 @@ parameters:
     en_US: Text
     zh_Hans: 消息文本
   human_description:
-    en_US: Plain text. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
-    zh_Hans: 纯文本。type 为 text 时必填；type 为 attachment 时可选，会放在图片前面、与图片在同一条消息中发送。
-  llm_description: Plain text. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
+    en_US: The message text, in the format that format names. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
+    zh_Hans: 消息文字，格式由 format 决定。type 为 text 时必填；type 为 attachment 时可选，会放在图片前面、与图片在同一条消息中发送。
+  llm_description: The message text, in the format that format names. Required for type text. Optional for type attachment, where it is sent in the same message, ahead of the images.
   form: llm
+- name: format
+  type: select
+  required: false
+  label:
+    en_US: Text format
+    zh_Hans: 文字格式
+  human_description:
+    en_US: 'plain sends text as written; markdown sends Markdown, which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Defaults to plain.'
+    zh_Hans: plain 按原样发送文字；markdown 发送 Markdown，渠道支持格式时 Photon 用该渠道自己的格式显示，不支持时转成易读的纯文本。Markdown 中不能包含 HTML。默认 plain。
+  llm_description: 'plain sends text as written; markdown sends Markdown, which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Defaults to plain.'
+  form: llm
+  default: plain
+  options:
+  - value: plain
+    label:
+      en_US: plain
+      zh_Hans: 纯文本（plain）
+  - value: markdown
+    label:
+      en_US: markdown
+      zh_Hans: Markdown（markdown）
 - name: attachments
   type: files
   required: false
