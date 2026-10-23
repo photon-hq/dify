@@ -1,6 +1,6 @@
 # Photon Dify 触发器
 
-通过 [Photon](https://photon.codes) 的消息 API，在 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件或 Telegram 收到消息时启动 Dify 工作流。
+通过 [Photon](https://photon.codes) 的消息 API（[API 参考](https://photon.codes/docs/beta/api-reference)），在 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件或 Telegram 收到消息时启动 Dify 工作流。
 
 Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自己的电话号码、机器人和邮箱账号是它的 *agent 用户*。项目收到消息时，Photon 会推送一条带签名的 `message.received` webhook，本插件据此启动使用该事件的工作流。要回复，请使用 [Photon 插件](https://github.com/photon-hq/dify)的 `send_message`。
 
@@ -12,8 +12,8 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 
 ## 配置
 
-1. 在 Photon 项目中连接要使用的渠道。插件不会连接渠道。
-2. 创建有权管理项目推送地址（webhook destination）的 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）。
+1. 在 Photon 项目中连接要使用的渠道（[Messaging](https://photon.codes/docs/beta/messaging)）。插件不会连接渠道。
+2. 创建有权管理项目推送地址（webhook destination）的 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）（[Set up your project](https://photon.codes/docs/beta/get-started/project)）。
 3. 安装 **Photon 触发器**，把它的 **收到消息** 事件作为工作流的开始节点，并用以下凭据创建订阅：
 
 | 凭据 | 是否必填 | 取值 |
@@ -22,7 +22,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
 
-创建订阅时，插件会为该订阅的 Dify 地址创建一个订阅了 `message.received` 的 Photon 推送地址，Dify 会把推送地址的签名密钥和订阅一起保存。删除订阅时，推送地址也会被删除。
+创建订阅时，插件会为该订阅的 Dify 地址创建一个订阅了 `message.received` 的 Photon 推送地址（[Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)），Dify 会把推送地址的签名密钥和订阅一起保存。删除订阅时，推送地址也会被删除（[Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)）。
 
 Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅前请把 `TRIGGER_URL` 设为 Dify API 的公网 HTTPS 地址，因为 Dify 用它生成订阅的地址。
 
@@ -50,7 +50,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求，用于校验密钥、创建和删除推送地址。Photon 会把推送发到订阅的 Dify 地址。
+插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求，用于校验密钥（[List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)）、创建和删除推送地址（[Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)、[Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)）。Photon 会把推送发到订阅的 Dify 地址。
 
 ## 限制
 

@@ -1,13 +1,13 @@
 # Photon Bot for Dify
 
-Answer messages on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram with a Dify Chatflow or Chatbot app, through [Photon](https://photon.codes)'s messaging API.
+Answer messages on iMessage, SMS, WhatsApp, WhatsApp Business, email, and Telegram with a Dify Chatflow or Chatbot app, through [Photon](https://photon.codes)'s messaging API ([API reference](https://photon.codes/docs/beta/api-reference)).
 
 Photon calls a conversation a *space*. Each space belongs to one platform, and the project's own phone numbers, bots, and email accounts are its *agent* users. When the project receives a message, Photon delivers a signed `message.received` webhook to this plugin's endpoint. The plugin passes the message's text to the app selected in the endpoint's settings and sends the app's answer back into the same space, from the agent user that received the message. Each space keeps one Dify conversation, so the app answers with the space's earlier messages as context.
 
 ## Setup
 
-1. In your Photon project, connect the channels you will use. The plugin does not connect channels.
-2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`) that can send messages in the project.
+1. In your Photon project, connect the channels you will use ([Messaging](https://photon.codes/docs/beta/messaging)). The plugin does not connect channels.
+2. Create an Account Service Key (`pho_ask_`) or a Project API key (`pho_sk_`) that can send messages in the project ([Set up your project](https://photon.codes/docs/beta/get-started/project)).
 3. Install **Photon Bot**, and add an endpoint to it with these settings:
 
 | Setting | Required | Value |
@@ -17,7 +17,7 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 | `signing_secret` | No | Leave it empty until step 5. |
 | `app` | Yes | The Chatflow or Chatbot app that answers. Inputs set here are passed to the app with every message. |
 
-4. Copy the endpoint URL that Dify shows, ending in `/`, and create a webhook destination for it in the Photon project, subscribed to `message.received` with API version `2026-07-01`. Use the URL exactly as Dify shows it: Photon does not follow redirects. With Photon's Create webhook destination:
+4. Copy the endpoint URL that Dify shows, ending in `/`, and create a webhook destination for it in the Photon project, subscribed to `message.received` with API version `2026-07-01`. Use the URL exactly as Dify shows it: Photon does not follow redirects. With Photon's [Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination):
 
 ```http
 POST https://api.photon.codes/v1/projects/pho_prj_…/webhooks/destinations
@@ -59,7 +59,7 @@ When a person sends "What are your opening hours?" to the project's Telegram bot
 }
 ```
 
-The plugin sends the text to the app as the query, in the conversation it keeps for `pho_spc_S` and the app; the first message of a space starts a new conversation. It then sends the app's answer with Photon's Send a Message:
+The plugin sends the text to the app as the query, in the conversation it keeps for `pho_spc_S` and the app; the first message of a space starts a new conversation. It then sends the app's answer with Photon's [Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message):
 
 ```json
 {
@@ -84,7 +84,7 @@ Photon waits 20 seconds for each delivery attempt and retries a delivery that ti
 
 ## Connection requirements
 
-The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to send the replies, and calls the selected app through Dify. Photon sends deliveries to the endpoint URL.
+The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to send the replies ([Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)), and calls the selected app through Dify. Photon sends deliveries to the endpoint URL.
 
 ## Limitations
 

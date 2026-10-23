@@ -1,26 +1,26 @@
 # Photon Dify 插件
 
-通过 [Photon](https://photon.codes) 的消息 API，在 Dify 的 Workflow、Chatflow 和 Agent 中收发 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 消息。
+通过 [Photon](https://photon.codes) 的消息 API（[API 参考](https://photon.codes/docs/beta/api-reference)），在 Dify 的 Workflow、Chatflow 和 Agent 中收发 iMessage、短信（SMS）、WhatsApp、WhatsApp Business、电子邮件和 Telegram 消息。
 
 Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`、`sms`、`whatsapp`、`whatsapp_business`、`email` 或 `telegram`），向会话发送的消息会走该渠道，所以同一套工具适用于所有渠道。
 
 ## 工具
 
-| 工具 | 作用 |
-|---|---|
-| `send_message` | 向现有会话发送文字（`type: text`），或每张不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（`type: attachment`）。 |
-| `list_spaces` | 查看会话，可按渠道或参与者筛选。 |
-| `create_or_get_space` | 返回指定用户在一个渠道上的会话，没有时新建。 |
-| `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 |
-| `get_message` | 获取一条消息及其发送者、内容和投递状态。 |
-| `get_user` | 获取一个用户的联系方式，以及它是 agent 用户（Photon 托管的号码或账号）还是普通联系人。 |
-| `create_or_get_user` | 返回一个渠道上某个电话号码或电子邮箱对应的用户，Photon 还没有时新建。 |
-| `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 |
+| 工具 | 作用 | Photon API |
+|---|---|---|
+| `send_message` | 向现有会话发送文字（`type: text`），或每张不超过 10 MB 的 JPEG、PNG、GIF、WebP 图片（`type: attachment`）。 | [Upload attachment](https://photon.codes/docs/beta/api-reference/attachments/upload-attachment)、[Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message) |
+| `list_spaces` | 查看会话，可按渠道或参与者筛选。 | [List Spaces](https://photon.codes/docs/beta/api-reference/spaces/list-spaces) |
+| `create_or_get_space` | 返回指定用户在一个渠道上的会话，没有时新建。 | [Create or get a Space](https://photon.codes/docs/beta/api-reference/spaces/create-or-get-a-space) |
+| `list_messages` | 按渠道、方向和创建时间查看消息，或查看单个会话的消息。 | [List Messages](https://photon.codes/docs/beta/api-reference/messages/list-messages) |
+| `get_message` | 获取一条消息及其发送者、内容和投递状态。 | [Get a Message](https://photon.codes/docs/beta/api-reference/messages/get-a-message) |
+| `get_user` | 获取一个用户的联系方式，以及它是 agent 用户（Photon 托管的号码或账号）还是普通联系人。 | [Get an User](https://photon.codes/docs/beta/api-reference/users/get-an-user) |
+| `create_or_get_user` | 返回一个渠道上某个电话号码或电子邮箱对应的用户，Photon 还没有时新建。 | [Create or get a User](https://photon.codes/docs/beta/api-reference/users/create-or-get-a-user) |
+| `get_attachment` | 获取附件的元数据，并以 Dify 文件返回附件本身。 | [Get attachment](https://photon.codes/docs/beta/api-reference/attachments/get-attachment)、[Download attachment](https://photon.codes/docs/beta/api-reference/attachments/download-attachment) |
 
 ## 配置
 
-1. 在 Photon 项目中连接要使用的渠道。插件不会连接渠道。
-2. 创建 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）。
+1. 在 Photon 项目中连接要使用的渠道（[Messaging](https://photon.codes/docs/beta/messaging)）。插件不会连接渠道。
+2. 创建 Account Service Key（`pho_ask_`）或 Project API key（`pho_sk_`），并复制项目 ID（`pho_prj_`）（[Set up your project](https://photon.codes/docs/beta/get-started/project)）。
 3. 从 Dify Marketplace 安装 **Photon**，然后在 **工具 > Photon** 中授权：
 
 | 凭据 | 是否必填 | 取值 |
@@ -50,7 +50,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 - `sender_id` 是该会话中项目的 agent 用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 区分 agent 用户（`kind: agent`）和普通联系人；本项目的专属号码带 `details.resourceId`。
 - `parent_message_id`（回复）和 `email_subject` 是可选的。
 - `format` 可选 `plain`（默认）或 `markdown`，即 CommonMark，以及 GFM 的表格和删除线。渠道支持格式时（例如 Telegram），Photon 用该渠道自己的格式显示 Markdown，不支持时转成易读的纯文本；Markdown 中不能包含 HTML。
-- 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。
+- 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。各错误码见 Photon 的[错误码目录](https://photon.codes/docs/beta/problems/catalog)。
 - 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。
 
