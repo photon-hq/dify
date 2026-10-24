@@ -11,7 +11,6 @@ SECRET = "whsec_" + "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8="
 NOW = "2026-10-22T00:00:00.000Z"
 ENDPOINT = "https://dify.example/triggers/plugin/00000000-0000-0000-0000-000000000001"
 CREDENTIALS = {
-    "api_origin": "https://api.photon.codes",
     "api_key": KEY,
     "project_id": PROJECT,
 }

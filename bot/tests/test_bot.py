@@ -65,7 +65,6 @@ class BotTests(unittest.TestCase):
         self.storage = {}
         self.app_calls = []
         self.answers = []
-        self.expected_origin = "https://api.photon.codes"
         for target, effect in [
             ("httpx.HTTPTransport.handle_request", self.transport),
             ("photon_api.transport.time.sleep", lambda seconds: None),
@@ -76,7 +75,7 @@ class BotTests(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def transport(self, _transport, request):
-        self.assertEqual(f"{request.url.scheme}://{request.url.host}", self.expected_origin)
+        self.assertEqual(f"{request.url.scheme}://{request.url.host}", "https://api.photon.codes")
         self.assertEqual(request.url.path, f"/v1/projects/{PROJECT}/messages")
         self.assertEqual(request.headers["Authorization"], "Bearer " + KEY)
         request.read()
@@ -389,14 +388,6 @@ class BotTests(unittest.TestCase):
             self.stored(),
             {f"{APP}:{SPACE}": {"message_id": MESSAGE, "conversation_id": CONVERSATION}},
         )
-
-    def test_staging_replies_go_to_the_staging_origin(self):
-        self.expected_origin = "https://api.staging.photon.codes"
-        self.answers.append(answer())
-        self.queue(sent())
-        staging = {**SETTINGS, "api_origin": "https://api.staging.photon.codes"}
-        self.assertEqual(self.deliver(delivery(), settings=staging), (200, ""))
-        self.assertEqual(len(self.calls), 1)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 
 | 设置 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。用于发送回复。 |
 | `signing_secret` | 否 | 第 5 步之前留空。 |
 | `app` | 是 | 负责回答的 Chatflow 或聊天助手应用。在这里设置的输入会随每条消息传给应用。 |
@@ -84,7 +83,7 @@ Photon 每次推送最多等待 20 秒，推送超时或失败时会重试；在
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求以发送回复（[Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)），并通过 Dify 调用所选应用。Photon 会把推送发到端点地址。
+插件会向 Photon 的 `api.photon.codes` 发起 HTTPS 请求以发送回复（[Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)），并通过 Dify 调用所选应用。Photon 会把推送发到端点地址。
 
 ## 限制
 

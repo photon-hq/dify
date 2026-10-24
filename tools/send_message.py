@@ -21,11 +21,11 @@ from provider.client import (
 class SendMessageTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         client = PhotonClient(self.runtime.credentials)
-        kind = tool_parameters.get("type") or "text"
+        kind = tool_parameters.get("type")
         if kind not in SEND_TYPES:
             raise PhotonError(f"type must be one of {', '.join(SEND_TYPES)}.")
         text = tool_parameters.get("text") or None
-        text_format = tool_parameters.get("format") or "plain"
+        text_format = tool_parameters.get("format")
         if text_format not in TEXT_FORMATS:
             raise PhotonError(f"format must be one of {', '.join(TEXT_FORMATS)}.")
         files = tool_parameters.get("attachments") or []

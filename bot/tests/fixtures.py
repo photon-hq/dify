@@ -16,7 +16,6 @@ KEY = "pho_" + "sk_" + "synthetic_fixture_only"
 SECRET = "whsec_" + "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8="
 NOW = "2026-10-22T00:00:00.000Z"
 SETTINGS = {
-    "api_origin": "https://api.photon.codes",
     "api_key": KEY,
     "signing_secret": SECRET,
     "app": {"app_id": APP, "inputs": {"tone": "brief"}, "files": [], "type": "app-selector"},

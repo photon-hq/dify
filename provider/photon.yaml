@@ -13,25 +13,6 @@ identity:
   - social
   - productivity
 credentials_for_provider:
-  api_origin:
-    type: select
-    required: true
-    default: https://api.photon.codes
-    label:
-      en_US: Photon environment
-      zh_Hans: Photon 环境
-    help:
-      en_US: Select Production or Staging to match your API key and project. Production is the default.
-      zh_Hans: 选择与 API 密钥及项目匹配的生产或预发布环境。默认使用生产环境。
-    options:
-    - value: https://api.photon.codes
-      label:
-        en_US: Production (https://api.photon.codes)
-        zh_Hans: 生产环境（https://api.photon.codes）
-    - value: https://api.staging.photon.codes
-      label:
-        en_US: Staging (https://api.staging.photon.codes)
-        zh_Hans: 预发布环境（https://api.staging.photon.codes）
   api_key:
     type: secret-input
     required: true
@@ -39,8 +20,8 @@ credentials_for_provider:
       en_US: Photon API key
       zh_Hans: Photon API 密钥
     help:
-      en_US: Account Service Key (pho_ask_) or Project API key (pho_sk_) from the selected Photon environment. Enter the raw key without Bearer. Project keys must belong to project_id.
-      zh_Hans: 所选 Photon 环境的账号服务密钥（pho_ask_）或项目 API 密钥（pho_sk_）。直接填写原始密钥，无需添加 Bearer。项目密钥必须属于 project_id 指定的项目。
+      en_US: Account Service Key (pho_ask_) or Project API key (pho_sk_). Enter the raw key without Bearer. Project keys must belong to project_id.
+      zh_Hans: 账号服务密钥（pho_ask_）或项目 API 密钥（pho_sk_）。直接填写原始密钥，无需添加 Bearer。项目密钥必须属于 project_id 指定的项目。
     placeholder:
       en_US: Photon API key
       zh_Hans: Photon API 密钥
@@ -52,8 +33,8 @@ credentials_for_provider:
       en_US: Photon project ID
       zh_Hans: Photon 项目 ID
     help:
-      en_US: Full project ID starting with pho_prj_, copied from your project settings in the selected Photon environment.
-      zh_Hans: 从所选 Photon 环境的项目设置中复制完整的项目 ID，须以 pho_prj_ 开头。
+      en_US: Full project ID starting with pho_prj_, copied from your project settings.
+      zh_Hans: 从项目设置中复制完整的项目 ID，须以 pho_prj_ 开头。
     placeholder:
       en_US: Photon project ID
       zh_Hans: Photon 项目 ID

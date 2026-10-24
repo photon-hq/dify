@@ -25,7 +25,6 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 | 凭据 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`，默认）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
 
@@ -40,6 +39,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
   "space_id": "pho_spc_…",
   "sender_id": "pho_usr_…",
   "type": "attachment",
+  "format": "plain",
   "attachments": ["<来自 Dify 文件变量的图片>"],
   "text": "您的订单已发货。",
   "idempotency_key": "order-1042-photos-v1"
@@ -49,7 +49,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 - 多张图片，或图片加文字，会作为一条 `group` 消息发送：文字在前，图片按顺序在后。每张图片会先上传到 Photon，再发送消息。
 - `sender_id` 是该会话中项目的 agent 用户：该会话中收到的消息的 `receivedBy.id`，或从该会话发出的消息的 `sentBy.id`。可用 `get_user` 区分 agent 用户（`kind: agent`）和普通联系人；本项目的专属号码带 `details.resourceId`。
 - `parent_message_id`（回复）和 `email_subject` 是可选的。
-- `format` 可选 `plain`（默认）或 `markdown`，即 CommonMark，以及 GFM 的表格和删除线。渠道支持格式时（例如 Telegram），Photon 用该渠道自己的格式显示 Markdown，不支持时转成易读的纯文本；Markdown 中不能包含 HTML。
+- `type` 和 `format` 都必填，没有默认值。`format` 取 `plain`（按原样发送文字）或 `markdown`，即 CommonMark，以及 GFM 的表格和删除线。渠道支持格式时（例如 Telegram），Photon 用该渠道自己的格式显示 Markdown，不支持时转成易读的纯文本；Markdown 中不能包含 HTML。
 - 各渠道接受什么内容由 Photon 决定。Photon 拒绝发送时，错误信息会保留 Photon 返回的状态码、错误码和原因，例如 `Photon API HTTP 422 (UNSUPPORTED_CONTENT): …`。各错误码见 Photon 的[错误码目录](https://photon.codes/docs/beta/problems/catalog)。
 - 发送是异步的：结果通常是 `dispatched`。之后可调用 `get_message` 查看：`delivered` 表示已确认送达；`accepted` 表示渠道已接收但没有确认送达，原因见 `acceptance.code`；`failed` 时原因见 `failure`。
 - 使用同一个 `idempotency_key` 可以安全地重试发送。省略时插件会生成一个，在结果中返回；发送失败时也会写在错误信息里。
@@ -72,7 +72,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求，并从 Dify 提供的地址下载要发送的图片。
+插件会向 Photon 的 `api.photon.codes` 发起 HTTPS 请求，并从 Dify 提供的地址下载要发送的图片。
 
 ## 限制
 
@@ -98,7 +98,7 @@ python -m unittest discover -s tests
 
 测试会模拟 Photon 和 Dify 的文件下载，不会发送真实消息。
 
-每次合并到 `main` 都会发布一个 GitHub 预发布版本，其中包含默认连接 Photon staging API 的 staging 构建和正式候选。正式版需要手动运行 **Promote to production** 工作流发布。
+每次合并到 `main` 都会发布一个 GitHub 预发布版本，其中包含 staging 构建和正式候选。正式版需要手动运行 **Promote to production** 工作流发布。
 
 ## 许可证
 

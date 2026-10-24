@@ -28,11 +28,10 @@ parameters:
     en_US: Type
     zh_Hans: 内容类型
   human_description:
-    en_US: 'Photon content type: text sends text; attachment sends the images in attachments. Defaults to text.'
-    zh_Hans: Photon 的内容类型：text 发送文字；attachment 发送 attachments 中的图片。默认 text。
-  llm_description: 'Photon content type: text sends text; attachment sends the images in attachments. Defaults to text.'
+    en_US: 'Photon content type: text sends text; attachment sends the images in attachments.'
+    zh_Hans: Photon 的内容类型：text 发送文字；attachment 发送 attachments 中的图片。
+  llm_description: 'Photon content type: text sends text; attachment sends the images in attachments.'
   form: llm
-  default: text
   options:
   - value: text
     label:
@@ -44,16 +43,15 @@ parameters:
       zh_Hans: 附件（attachment）
 - name: format
   type: select
-  required: false
+  required: true
   label:
     en_US: Text format
     zh_Hans: 文字格式
   human_description:
-    en_US: 'plain sends text as written; markdown sends Markdown (CommonMark with GFM tables and strikethrough), which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Defaults to plain.'
-    zh_Hans: plain 按原样发送文字；markdown 发送 Markdown（CommonMark，以及 GFM 的表格和删除线），渠道支持格式时 Photon 用该渠道自己的格式显示，不支持时转成易读的纯文本。Markdown 中不能包含 HTML。默认 plain。
-  llm_description: 'plain sends text as written; markdown sends Markdown (CommonMark with GFM tables and strikethrough), which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Defaults to plain.'
+    en_US: 'plain sends text as written; markdown sends Markdown (CommonMark with GFM tables and strikethrough), which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Required for images without text too, where it has no effect.'
+    zh_Hans: plain 按原样发送文字；markdown 发送 Markdown（CommonMark，以及 GFM 的表格和删除线），渠道支持格式时 Photon 用该渠道自己的格式显示，不支持时转成易读的纯文本。Markdown 中不能包含 HTML。只发图片、不带文字时也必须选择，此时不起作用。
+  llm_description: 'plain sends text as written; markdown sends Markdown (CommonMark with GFM tables and strikethrough), which Photon renders with the channel''s own formatting where the channel has it and as readable plain text elsewhere. Photon rejects HTML in Markdown. Required for images without text too, where it has no effect.'
   form: llm
-  default: plain
   options:
   - value: plain
     label:

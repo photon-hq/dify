@@ -49,14 +49,14 @@ jobs:
           curl -fsSL -o "$RUNNER_TEMP/dify" "https://github.com/langgenius/dify-plugin-daemon/releases/download/$DIFY_CLI_VERSION/dify-plugin-linux-amd64"
           echo "$DIFY_CLI_SHA256  $RUNNER_TEMP/dify" | sha256sum -c -
           chmod +x "$RUNNER_TEMP/dify"
-      # The staging build defaults to Photon's staging API; the production candidate is X.Y.Z.
+      # The staging build is X.Y.Z-dev<run number>; the production candidate is X.Y.Z.
       - name: Pack the staging build and the production candidate
         env:
           DIFY_CLI: ${{ runner.temp }}/dify
           PACK_DESTINATION: dist
         run: |
-          RELEASE_CHANNEL=staging RELEASE_SUFFIX="-dev$GITHUB_RUN_NUMBER" scripts/pack.sh
-          RELEASE_CHANNEL=production scripts/pack.sh
+          RELEASE_SUFFIX="-dev$GITHUB_RUN_NUMBER" scripts/pack.sh
+          scripts/pack.sh
           test -z "$(git status --porcelain --untracked-files=no)"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

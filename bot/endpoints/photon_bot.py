@@ -14,6 +14,7 @@ from photon_api import Photon
 from photon_api.rpc_generated import SendMessageInput
 from werkzeug import Request, Response
 
+ORIGIN = "https://api.photon.codes"
 TOLERANCE_SECONDS = 300
 
 
@@ -38,7 +39,7 @@ def verify_signature(request: Request, secret: str, now: float) -> None:
 def send_reply(settings: Mapping, project_id: str, message: dict[str, Any], text: str) -> None:
     """Send text into the message's space from the agent user that received it."""
     photon = Photon(
-        base_url=settings["api_origin"],
+        base_url=ORIGIN,
         headers={"Authorization": f"Bearer {settings['api_key']}"},
     )
     photon.projects.send_message(

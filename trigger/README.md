@@ -18,7 +18,6 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 
 | Credential | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`, the default) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
 
@@ -37,6 +36,7 @@ To reply in the same space, pass these to the Photon plugin's `send_message`:
   "space_id": "<the event's space.id>",
   "sender_id": "<the event's receivedBy.id>",
   "type": "text",
+  "format": "plain",
   "text": "Thanks, we got your message.",
   "idempotency_key": "<the event's id>.reply"
 }
@@ -50,7 +50,7 @@ Every delivery is checked against Photon's signature before a workflow starts: t
 
 ## Connection requirements
 
-The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to check the key ([List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)) and to create and delete the webhook destination ([Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination), [Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)). Photon sends deliveries to the subscription's Dify endpoint.
+The plugin makes HTTPS requests to Photon at `api.photon.codes` to check the key ([List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)) and to create and delete the webhook destination ([Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination), [Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)). Photon sends deliveries to the subscription's Dify endpoint.
 
 ## Limitations
 

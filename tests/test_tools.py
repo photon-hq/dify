@@ -44,7 +44,6 @@ class ToolTests(unittest.TestCase):
         self.responses = []
         self.downloads = []
         self.download_bodies = {}
-        self.expected_origin = "https://api.photon.codes"
         for target, effect in [
             ("httpx.HTTPTransport.handle_request", self.transport),
             ("dify_plugin.file.file.httpx.get", self.download),
@@ -57,7 +56,7 @@ class ToolTests(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def transport(self, _transport, request):
-        self.assertEqual(f"{request.url.scheme}://{request.url.host}", self.expected_origin)
+        self.assertEqual(f"{request.url.scheme}://{request.url.host}", "https://api.photon.codes")
         self.assertTrue(request.url.path.startswith(f"/v1/projects/{PROJECT}/"))
         self.assertEqual(request.headers["Authorization"], "Bearer " + KEY)
         request.read()
@@ -121,46 +120,42 @@ class ToolTests(unittest.TestCase):
             self.invoke(name, parameters, credentials)
         return str(raised.exception)
 
-    def test_both_origins_route_credential_validation_and_every_tool(self):
-        for origin in ["https://api.photon.codes", "https://api.staging.photon.codes"]:
-            with self.subTest(origin=origin):
-                self.expected_origin = origin
-                credentials = {**CREDENTIALS, "api_origin": origin}
-                self.queue({"items": []})
-                PhotonProvider().validate_credentials(credentials)
-                self.assertEqual(
-                    (self.calls[-1].method, self.calls[-1].url.path, self.query()),
-                    ("GET", f"/v1/projects/{PROJECT}/spaces", {"pageSize": "1"}),
-                )
-                self.queue(message(), status=202)
-                self.invoke(
-                    "send_message",
-                    {"space_id": SPACE, "sender_id": SENDER, "text": "Hello"},
-                    credentials,
-                )
-                self.queue({"items": [chat()]})
-                self.invoke("list_spaces", {}, credentials)
-                self.queue(chat())
-                self.invoke(
-                    "create_or_get_space",
-                    {"platform": "imessage", "participant_ids": f"{SENDER},{OTHER_SENDER}"},
-                    credentials,
-                )
-                self.queue({"items": [message()]})
-                self.invoke("list_messages", {}, credentials)
-                self.queue(message())
-                self.invoke("get_message", {"message_id": MESSAGE}, credentials)
-                self.queue(user())
-                self.invoke("get_user", {"user_id": SENDER}, credentials)
-                self.queue(user())
-                self.invoke(
-                    "create_or_get_user",
-                    {"platform": "imessage", "handle": "+14155550123"},
-                    credentials,
-                )
-                self.queue(attachment())
-                self.queue(PNG, content_type="image/png")
-                self.invoke("get_attachment", {"attachment_id": ATTACHMENT}, credentials)
+    def test_credential_validation_and_every_tool_call_api_photon_codes(self):
+        self.queue({"items": []})
+        PhotonProvider().validate_credentials(CREDENTIALS)
+        self.assertEqual(
+            (self.calls[-1].method, self.calls[-1].url.path, self.query()),
+            ("GET", f"/v1/projects/{PROJECT}/spaces", {"pageSize": "1"}),
+        )
+        self.queue(message(), status=202)
+        self.invoke(
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hello",
+            },
+        )
+        self.queue({"items": [chat()]})
+        self.invoke("list_spaces", {})
+        self.queue(chat())
+        self.invoke(
+            "create_or_get_space",
+            {"platform": "imessage", "participant_ids": f"{SENDER},{OTHER_SENDER}"},
+        )
+        self.queue({"items": [message()]})
+        self.invoke("list_messages", {})
+        self.queue(message())
+        self.invoke("get_message", {"message_id": MESSAGE})
+        self.queue(user())
+        self.invoke("get_user", {"user_id": SENDER})
+        self.queue(user())
+        self.invoke("create_or_get_user", {"platform": "imessage", "handle": "+14155550123"})
+        self.queue(attachment())
+        self.queue(PNG, content_type="image/png")
+        self.invoke("get_attachment", {"attachment_id": ATTACHMENT})
 
     def test_credential_validation_reports_the_photon_error(self):
         self.problem(401, "NOT_AUTHENTICATED", title="Not Authenticated")
@@ -173,7 +168,14 @@ class ToolTests(unittest.TestCase):
     def test_send_text_returns_photons_message_and_a_generated_key(self):
         self.queue(message(text="Hello"), status=202)
         result = self.invoke(
-            "send_message", {"space_id": SPACE, "sender_id": SENDER, "text": "Hello"}
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hello",
+            },
         )
         call = self.calls[-1]
         self.assertEqual((call.method, call.url.path), ("POST", f"/v1/projects/{PROJECT}/messages"))
@@ -197,6 +199,8 @@ class ToolTests(unittest.TestCase):
             "send_message",
             {
                 "space_id": SPACE,
+                "type": "text",
+                "format": "plain",
                 "text": "Hello",
                 "sender_id": OTHER_SENDER,
                 "parent_message_id": MESSAGE,
@@ -226,6 +230,7 @@ class ToolTests(unittest.TestCase):
                 "space_id": SPACE,
                 "sender_id": SENDER,
                 "type": "attachment",
+                "format": "plain",
                 "attachments": [image()],
                 "idempotency_key": "photos-v1",
             },
@@ -275,6 +280,7 @@ class ToolTests(unittest.TestCase):
                 "space_id": SPACE,
                 "sender_id": SENDER,
                 "type": "attachment",
+                "format": "plain",
                 "text": "Two photos",
                 "attachments": [image(), image("photo.jpg", "image/jpeg")],
             },
@@ -290,7 +296,13 @@ class ToolTests(unittest.TestCase):
         self.queue(message(text="**Hello**"), status=202)
         self.invoke(
             "send_message",
-            {"space_id": SPACE, "sender_id": SENDER, "text": "**Hello**", "format": "markdown"},
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "markdown",
+                "text": "**Hello**",
+            },
         )
         self.assertEqual(
             self.body()["content"], {"type": "text", "format": "markdown", "text": "**Hello**"}
@@ -336,13 +348,36 @@ class ToolTests(unittest.TestCase):
                 self.assertIn(
                     error,
                     self.fails(
-                        "send_message", {"space_id": SPACE, "sender_id": SENDER, **parameters}
+                        "send_message",
+                        {
+                            "space_id": SPACE,
+                            "sender_id": SENDER,
+                            "type": "text",
+                            "format": "plain",
+                            **parameters,
+                        },
                     ),
                 )
         self.assertIn(
             "Invalid input for Photon: body.senderId",
-            self.fails("send_message", {"space_id": SPACE, "text": "Hi"}),
+            self.fails(
+                "send_message", {"space_id": SPACE, "type": "text", "format": "plain", "text": "Hi"}
+            ),
         )
+        self.assertEqual(self.calls, [])
+
+    def test_send_requires_type_and_format_before_any_request(self):
+        for missing in ("type", "format"):
+            with self.subTest(missing=missing):
+                parameters = {
+                    "space_id": SPACE,
+                    "sender_id": SENDER,
+                    "type": "text",
+                    "format": "plain",
+                    "text": "Hi",
+                }
+                del parameters[missing]
+                self.assertIn(f"{missing} must be one of", self.fails("send_message", parameters))
         self.assertEqual(self.calls, [])
 
     def test_photon_errors_keep_the_status_code_and_reason(self):
@@ -352,7 +387,16 @@ class ToolTests(unittest.TestCase):
             title="Unsupported Content",
             detail="This Space cannot accept this content",
         )
-        error = self.fails("send_message", {"space_id": SPACE, "sender_id": SENDER, "text": "Hi"})
+        error = self.fails(
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hi",
+            },
+        )
         self.assertRegex(
             error,
             r"^Photon API HTTP 422 \(UNSUPPORTED_CONTENT\): This Space cannot accept this content "
@@ -362,7 +406,14 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(
             self.fails(
                 "send_message",
-                {"space_id": SPACE, "sender_id": SENDER, "text": "Hi", "idempotency_key": "k1"},
+                {
+                    "space_id": SPACE,
+                    "sender_id": SENDER,
+                    "type": "text",
+                    "format": "plain",
+                    "text": "Hi",
+                    "idempotency_key": "k1",
+                },
             ),
             "Photon API HTTP 409 (SPACE_NOT_SENDABLE): Replies are not supported for this Space",
         )
@@ -392,7 +443,14 @@ class ToolTests(unittest.TestCase):
         self.queue(message(), status=202)
         result = self.invoke(
             "send_message",
-            {"space_id": SPACE, "sender_id": SENDER, "text": "Hi", "idempotency_key": "retry-v1"},
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hi",
+                "idempotency_key": "retry-v1",
+            },
         )
         self.assertEqual(
             [call.headers["Idempotency-Key"] for call in self.calls], ["retry-v1", "retry-v1"]
@@ -400,7 +458,16 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result["id"], MESSAGE)
         self.calls.clear()
         self.responses.extend([httpx.ConnectError("unreachable")] * 3)
-        error = self.fails("send_message", {"space_id": SPACE, "sender_id": SENDER, "text": "Hi"})
+        error = self.fails(
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hi",
+            },
+        )
         self.assertEqual(len(self.calls), 3)
         self.assertEqual(
             error,
