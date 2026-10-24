@@ -39,6 +39,5 @@ contact: help@photon.codes
 network:
   domains:
     - api.photon.codes
-    - api.staging.photon.codes
 verified: false
 created_at: "2026-10-22T08:20:58Z"

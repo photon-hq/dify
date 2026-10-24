@@ -25,7 +25,6 @@ Photon calls a conversation a *space*. Each space belongs to one platform (`imes
 
 | Credential | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. |
 | `project_id` | Yes | The project ID. |
 
@@ -73,7 +72,7 @@ Results are Photon's objects as the API returns them. A message has `id`, `platf
 
 ## Connection requirements
 
-The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, and downloads the images to send from the URLs Dify provides for them.
+The plugin makes HTTPS requests to Photon at `api.photon.codes`, and downloads the images to send from the URLs Dify provides for them.
 
 ## Limitations
 

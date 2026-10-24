@@ -18,7 +18,6 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道，项目自�
 
 | 凭据 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
 
@@ -51,7 +50,7 @@ Photon 只向公网 HTTPS 地址推送。在自部署的 Dify 上，创建订阅
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求，用于校验密钥（[List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)）、创建和删除推送地址（[Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)、[Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)）。Photon 会把推送发到订阅的 Dify 地址。
+插件会向 Photon 的 `api.photon.codes` 发起 HTTPS 请求，用于校验密钥（[List webhook destinations](https://photon.codes/docs/beta/api-reference/webhook-destinations/list-webhook-destinations)）、创建和删除推送地址（[Create webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/create-webhook-destination)、[Delete webhook destination](https://photon.codes/docs/beta/api-reference/webhook-destinations/delete-webhook-destination)）。Photon 会把推送发到订阅的 Dify 地址。
 
 ## 限制
 

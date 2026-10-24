@@ -44,7 +44,6 @@ class ToolTests(unittest.TestCase):
         self.responses = []
         self.downloads = []
         self.download_bodies = {}
-        self.expected_origin = "https://api.photon.codes"
         for target, effect in [
             ("httpx.HTTPTransport.handle_request", self.transport),
             ("dify_plugin.file.file.httpx.get", self.download),
@@ -57,7 +56,7 @@ class ToolTests(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def transport(self, _transport, request):
-        self.assertEqual(f"{request.url.scheme}://{request.url.host}", self.expected_origin)
+        self.assertEqual(f"{request.url.scheme}://{request.url.host}", "https://api.photon.codes")
         self.assertTrue(request.url.path.startswith(f"/v1/projects/{PROJECT}/"))
         self.assertEqual(request.headers["Authorization"], "Bearer " + KEY)
         request.read()
@@ -121,52 +120,42 @@ class ToolTests(unittest.TestCase):
             self.invoke(name, parameters, credentials)
         return str(raised.exception)
 
-    def test_both_origins_route_credential_validation_and_every_tool(self):
-        for origin in ["https://api.photon.codes", "https://api.staging.photon.codes"]:
-            with self.subTest(origin=origin):
-                self.expected_origin = origin
-                credentials = {**CREDENTIALS, "api_origin": origin}
-                self.queue({"items": []})
-                PhotonProvider().validate_credentials(credentials)
-                self.assertEqual(
-                    (self.calls[-1].method, self.calls[-1].url.path, self.query()),
-                    ("GET", f"/v1/projects/{PROJECT}/spaces", {"pageSize": "1"}),
-                )
-                self.queue(message(), status=202)
-                self.invoke(
-                    "send_message",
-                    {
-                        "space_id": SPACE,
-                        "sender_id": SENDER,
-                        "type": "text",
-                        "format": "plain",
-                        "text": "Hello",
-                    },
-                    credentials,
-                )
-                self.queue({"items": [chat()]})
-                self.invoke("list_spaces", {}, credentials)
-                self.queue(chat())
-                self.invoke(
-                    "create_or_get_space",
-                    {"platform": "imessage", "participant_ids": f"{SENDER},{OTHER_SENDER}"},
-                    credentials,
-                )
-                self.queue({"items": [message()]})
-                self.invoke("list_messages", {}, credentials)
-                self.queue(message())
-                self.invoke("get_message", {"message_id": MESSAGE}, credentials)
-                self.queue(user())
-                self.invoke("get_user", {"user_id": SENDER}, credentials)
-                self.queue(user())
-                self.invoke(
-                    "create_or_get_user",
-                    {"platform": "imessage", "handle": "+14155550123"},
-                    credentials,
-                )
-                self.queue(attachment())
-                self.queue(PNG, content_type="image/png")
-                self.invoke("get_attachment", {"attachment_id": ATTACHMENT}, credentials)
+    def test_credential_validation_and_every_tool_call_api_photon_codes(self):
+        self.queue({"items": []})
+        PhotonProvider().validate_credentials(CREDENTIALS)
+        self.assertEqual(
+            (self.calls[-1].method, self.calls[-1].url.path, self.query()),
+            ("GET", f"/v1/projects/{PROJECT}/spaces", {"pageSize": "1"}),
+        )
+        self.queue(message(), status=202)
+        self.invoke(
+            "send_message",
+            {
+                "space_id": SPACE,
+                "sender_id": SENDER,
+                "type": "text",
+                "format": "plain",
+                "text": "Hello",
+            },
+        )
+        self.queue({"items": [chat()]})
+        self.invoke("list_spaces", {})
+        self.queue(chat())
+        self.invoke(
+            "create_or_get_space",
+            {"platform": "imessage", "participant_ids": f"{SENDER},{OTHER_SENDER}"},
+        )
+        self.queue({"items": [message()]})
+        self.invoke("list_messages", {})
+        self.queue(message())
+        self.invoke("get_message", {"message_id": MESSAGE})
+        self.queue(user())
+        self.invoke("get_user", {"user_id": SENDER})
+        self.queue(user())
+        self.invoke("create_or_get_user", {"platform": "imessage", "handle": "+14155550123"})
+        self.queue(attachment())
+        self.queue(PNG, content_type="image/png")
+        self.invoke("get_attachment", {"attachment_id": ATTACHMENT})
 
     def test_credential_validation_reports_the_photon_error(self):
         self.problem(401, "NOT_AUTHENTICATED", title="Not Authenticated")

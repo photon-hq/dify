@@ -30,8 +30,7 @@ from photon_api.rpc_generated import (
 from werkzeug import Request, Response
 
 API_VERSION = "2026-07-01"
-# Dify does not hold trigger credentials to the select's options, so the plugin does.
-ORIGINS = ("https://api.photon.codes", "https://api.staging.photon.codes")
+ORIGIN = "https://api.photon.codes"
 EVENTS = {"message.received": "message_received"}
 TOLERANCE_SECONDS = 300
 INPUTS = {
@@ -68,10 +67,7 @@ def api_error_message(error: ApiError) -> str:
 
 def call(credentials: Mapping[str, Any], operation: str, **parts: Any) -> dict[str, Any]:
     """Run one Photon operation on the credentials' project and return its JSON."""
-    origin = credentials["api_origin"]
-    if origin not in ORIGINS:
-        raise PhotonError(f"api_origin must be {' or '.join(ORIGINS)}.")
-    api = Photon(base_url=origin, headers={"Authorization": f"Bearer {credentials['api_key']}"})
+    api = Photon(base_url=ORIGIN, headers={"Authorization": f"Bearer {credentials['api_key']}"})
     path = {"projectId": credentials["project_id"], **parts.pop("path", {})}
     try:
         result = getattr(api.projects, operation)(
@@ -80,7 +76,7 @@ def call(credentials: Mapping[str, Any], operation: str, **parts: Any) -> dict[s
     except ApiError as error:
         raise PhotonError(api_error_message(error)) from None
     except TransportError:
-        raise PhotonError(f"Cannot reach Photon at {origin}, or the request timed out.") from None
+        raise PhotonError(f"Cannot reach Photon at {ORIGIN}, or the request timed out.") from None
     except ClientError as error:
         raise PhotonError(f"{error}.") from None
     return result.model_dump(mode="json")

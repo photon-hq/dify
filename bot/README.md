@@ -12,7 +12,6 @@ Photon calls a conversation a *space*. Each space belongs to one platform, and t
 
 | Setting | Required | Value |
 |---|---|---|
-| `api_origin` | Yes | Production (`https://api.photon.codes`) or Staging (`https://api.staging.photon.codes`), matching your key. |
 | `api_key` | Yes | The raw key, without `Bearer`. It sends the replies. |
 | `signing_secret` | No | Leave it empty until step 5. |
 | `app` | Yes | The Chatflow or Chatbot app that answers. Inputs set here are passed to the app with every message. |
@@ -84,7 +83,7 @@ Photon waits 20 seconds for each delivery attempt and retries a delivery that ti
 
 ## Connection requirements
 
-The plugin makes HTTPS requests to the selected Photon host, `api.photon.codes` or `api.staging.photon.codes`, to send the replies ([Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)), and calls the selected app through Dify. Photon sends deliveries to the endpoint URL.
+The plugin makes HTTPS requests to Photon at `api.photon.codes` to send the replies ([Send a Message](https://photon.codes/docs/beta/api-reference/messages/send-a-message)), and calls the selected app through Dify. Photon sends deliveries to the endpoint URL.
 
 ## Limitations
 

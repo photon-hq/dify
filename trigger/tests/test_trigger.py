@@ -69,7 +69,6 @@ class TriggerTests(unittest.TestCase):
     def setUp(self):
         self.calls = []
         self.responses = []
-        self.expected_origin = "https://api.photon.codes"
         for target, effect in [
             ("httpx.HTTPTransport.handle_request", self.transport),
             ("photon_api.transport.time.sleep", lambda seconds: None),
@@ -81,7 +80,7 @@ class TriggerTests(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def transport(self, _transport, request):
-        self.assertEqual(f"{request.url.scheme}://{request.url.host}", self.expected_origin)
+        self.assertEqual(f"{request.url.scheme}://{request.url.host}", "https://api.photon.codes")
         self.assertTrue(request.url.path.startswith(f"/v1/projects/{PROJECT}/webhooks/"))
         self.assertEqual(request.headers["Authorization"], "Bearer " + KEY)
         request.read()
@@ -191,24 +190,20 @@ class TriggerTests(unittest.TestCase):
         self.assertEqual(dispatched.events, [])
         self.assertEqual(dispatched.response.status_code, 200)
 
-    def test_both_origins_route_validation_and_subscriptions(self):
-        for origin in ["https://api.photon.codes", "https://api.staging.photon.codes"]:
-            with self.subTest(origin=origin):
-                self.expected_origin = origin
-                credentials = {**CREDENTIALS, "api_origin": origin}
-                self.queue({"destinations": []})
-                self.constructor().validate_api_key(credentials)
-                self.assertEqual(self.calls[-1].method, "GET")
-                self.assertEqual(self.calls[-1].url.params["pageSize"], "1")
-                self.queue({"destination": destination(), "signingSecret": SECRET}, status=201)
-                self.constructor(credentials).create_subscription(
-                    ENDPOINT, {}, credentials, CredentialType.API_KEY
-                )
-                self.queue(destination(deletedAt="2026-10-22T00:01:00.000Z"))
-                self.constructor(credentials).delete_subscription(
-                    SUBSCRIPTION, credentials, CredentialType.API_KEY
-                )
-        self.assertEqual(len(self.calls), 6)
+    def test_validation_and_subscriptions_call_api_photon_codes(self):
+        self.queue({"destinations": []})
+        self.constructor().validate_api_key(CREDENTIALS)
+        self.assertEqual(self.calls[-1].method, "GET")
+        self.assertEqual(self.calls[-1].url.params["pageSize"], "1")
+        self.queue({"destination": destination(), "signingSecret": SECRET}, status=201)
+        self.constructor(CREDENTIALS).create_subscription(
+            ENDPOINT, {}, CREDENTIALS, CredentialType.API_KEY
+        )
+        self.queue(destination(deletedAt="2026-10-22T00:01:00.000Z"))
+        self.constructor(CREDENTIALS).delete_subscription(
+            SUBSCRIPTION, CREDENTIALS, CredentialType.API_KEY
+        )
+        self.assertEqual(len(self.calls), 3)
 
     def test_validation_passes_on_photons_error(self):
         self.problem(401, "UNAUTHORIZED", detail="Invalid API key")
@@ -217,21 +212,6 @@ class TriggerTests(unittest.TestCase):
         self.assertEqual(
             str(raised.exception), "Photon API HTTP 401 (UNAUTHORIZED): Invalid API key"
         )
-
-    def test_other_origins_are_refused_before_any_request(self):
-        credentials = {**CREDENTIALS, "api_origin": "https://photon.example"}
-        expected = (
-            "api_origin must be https://api.photon.codes or https://api.staging.photon.codes."
-        )
-        with self.assertRaises(TriggerProviderCredentialValidationError) as raised:
-            self.constructor().validate_api_key(credentials)
-        self.assertEqual(str(raised.exception), expected)
-        with self.assertRaises(SubscriptionError) as raised:
-            self.constructor(credentials).create_subscription(
-                ENDPOINT, {}, credentials, CredentialType.API_KEY
-            )
-        self.assertEqual(str(raised.exception), expected)
-        self.assertEqual(self.calls, [])
 
     def test_subscribing_creates_a_destination_for_the_endpoint_and_keeps_its_secret(self):
         self.queue({"destination": destination(), "signingSecret": SECRET}, status=201)

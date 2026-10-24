@@ -25,7 +25,6 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 | 凭据 | 是否必填 | 取值 |
 |---|---|---|
-| `api_origin` | 是 | 与密钥匹配的生产环境（`https://api.photon.codes`）或预发布环境（`https://api.staging.photon.codes`）。 |
 | `api_key` | 是 | 原始密钥，不要加 `Bearer`。 |
 | `project_id` | 是 | 项目 ID。 |
 
@@ -73,7 +72,7 @@ Photon 把会话称为 *space*。每个会话只属于一个渠道（`imessage`�
 
 ## 网络连接要求
 
-插件会向所选的 Photon 主机 `api.photon.codes` 或 `api.staging.photon.codes` 发起 HTTPS 请求，并从 Dify 提供的地址下载要发送的图片。
+插件会向 Photon 的 `api.photon.codes` 发起 HTTPS 请求，并从 Dify 提供的地址下载要发送的图片。
 
 ## 限制
 

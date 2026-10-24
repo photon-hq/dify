@@ -23,6 +23,7 @@ from photon_api.rpc_generated import (
 )
 from pydantic import ValidationError
 
+ORIGIN = "https://api.photon.codes"
 SEND_TYPES = ("text", "attachment")
 TEXT_FORMATS = ("plain", "markdown")
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
@@ -90,10 +91,9 @@ def tool_messages(tool: Tool, result: dict[str, Any]) -> Generator[ToolInvokeMes
 
 class PhotonClient:
     def __init__(self, credentials: dict[str, Any]):
-        self.origin = credentials["api_origin"]
         self.project_id = credentials["project_id"]
         self.api = Photon(
-            base_url=self.origin, headers={"Authorization": f"Bearer {credentials['api_key']}"}
+            base_url=ORIGIN, headers={"Authorization": f"Bearer {credentials['api_key']}"}
         )
 
     def call(
@@ -124,7 +124,7 @@ class PhotonClient:
             raise PhotonError(api_error_message(error)) from None
         except TransportError:
             raise UnknownOutcome(
-                f"Cannot reach Photon at {self.origin}, or the request timed out."
+                f"Cannot reach Photon at {ORIGIN}, or the request timed out."
             ) from None
         except ClientError as error:
             raise UnknownOutcome(f"{error}.") from None
