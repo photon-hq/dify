@@ -102,4 +102,4 @@ Every merge to `main` publishes a GitHub prerelease with a staging build and the
 
 ## License
 
-[MIT](LICENSE)
+[Apache-2.0](LICENSE)
