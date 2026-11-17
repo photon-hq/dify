@@ -19,6 +19,7 @@ from fixtures import (
     OTHER_ATTACHMENT,
     OTHER_SENDER,
     OTHER_SPACE,
+    PARENT_MESSAGE,
     PNG,
     PROJECT,
     SENDER,
@@ -576,6 +577,28 @@ class ToolTests(unittest.TestCase):
         }
         self.queue(message("received", content=content))
         self.assertEqual(self.invoke("get_message", {"message_id": MESSAGE})["content"], content)
+
+    def test_edits_reactions_and_shared_profiles_are_returned_as_photon_sends_them(self):
+        edit = {
+            "type": "message.update",
+            "content": {"type": "text", "format": "plain", "text": "Edited"},
+        }
+        page = {
+            "items": [
+                {**message("received", content=edit), "parentMessageId": PARENT_MESSAGE},
+                {
+                    **message("received", content={"type": "reaction", "reaction": "👍"}),
+                    "parentMessageId": PARENT_MESSAGE,
+                },
+                message("received", content={"type": "space.profile.share"}),
+            ]
+        }
+        self.queue(page)
+        self.assertEqual(self.invoke("list_messages", {"space_id": SPACE}), page)
+        for item in page["items"]:
+            with self.subTest(content=item["content"]["type"]):
+                self.queue(item)
+                self.assertEqual(self.invoke("get_message", {"message_id": MESSAGE}), item)
 
     def test_get_user_returns_photons_user(self):
         self.queue(user(OTHER_SENDER, "human", "+14155550199"))

@@ -27,7 +27,7 @@ Photon delivers only to public HTTPS URLs. On self-hosted Dify, set `TRIGGER_URL
 
 ## Usage
 
-The event's variables are Photon's message as the webhook carries it: `id`, `platform`, `space`, `sentBy`, `receivedBy`, `content`, `status`, `timestamps`, `createdAt`, and `parentMessageId` when the message is a reply. `content.type` says what arrived; a text message's text is `content.text`, and an attachment's ID is `content.attachmentId`, for the Photon plugin's `get_attachment`. Besides text and attachments, `message.received` can carry other content, such as a reaction (`reaction`), an edit (`text.update`), a deletion (`message.delete`), a read receipt (`message.read`), or a poll (`poll`), and these start the workflow too; to answer only text, branch on `content.type`.
+The event's variables are Photon's message as the webhook carries it: `id`, `platform`, `space`, `sentBy`, `receivedBy`, `content`, `status`, `timestamps`, `createdAt`, and `parentMessageId` when the message is a reply. `content.type` says what arrived; a text message's text is `content.text`, and an attachment's ID is `content.attachmentId`, for the Photon plugin's `get_attachment`. Besides text and attachments, `message.received` can carry other content, such as a reaction (`reaction`), an edit (`message.update`, with the new content in `content.content`), a deletion (`message.delete`), a read receipt (`message.read`), or a poll (`poll`), and these start the workflow too; to answer only text, branch on `content.type`.
 
 To reply in the same space, pass these to the Photon plugin's `send_message`:
 
