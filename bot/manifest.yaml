@@ -23,6 +23,9 @@ resource:
 plugins:
   endpoints:
     - group/photon_bot.yaml
+tags:
+  - social
+  - productivity
 meta:
   version: 0.0.1
   arch:
