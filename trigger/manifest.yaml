@@ -16,6 +16,9 @@ resource:
 plugins:
   triggers:
     - provider/photon_trigger.yaml
+tags:
+  - social
+  - productivity
 meta:
   version: 0.0.1
   arch:
